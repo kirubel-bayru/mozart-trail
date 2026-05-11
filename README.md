@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Full-Stack Starter (React + Express + PostgreSQL)
 
 Starter template for teams using:
@@ -58,3 +59,7 @@ npm run dev
 
 - `GET /api/health` - service health info
 - `GET /api/db` - database connection test (`SELECT NOW()`)
+=======
+## Mozart_Trail
+
+>>>>>>> 8bc8c9b100968fa3e7e5050fef57bd061d8230f4

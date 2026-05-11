@@ -1,0 +1,58 @@
+**Project Title:** *Mozart’s Salzburg — Walk Through His Life*
+
+---
+
+### **Topic Overview**
+
+This project explores the life of Wolfgang Amadeus Mozart through an interactive, map-based web experience set in Salzburg. Instead of presenting a traditional biography, the platform connects key locations in the city to important events in Mozart’s life, allowing users to explore his story spatially and chronologically. Each location acts as a narrative entry point, combining storytelling with geographic visualization.
+
+---
+
+### **Data Basis**
+
+The project will use the Salzburg Open API as its primary data source. This includes:
+
+* Geographic data (coordinates, maps, locations)
+* Cultural and historical points of interest
+* Metadata about landmarks and buildings
+
+Additional content (texts, images, historical context) will be curated from reliable secondary sources and integrated into the application.
+
+---
+
+### **Target Audience**
+
+* Tourists visiting Salzburg interested in culture and history
+* Students and educators learning about Mozart
+* General users interested in interactive storytelling and music history
+
+The platform aims to be intuitive and engaging for both casual users and those seeking deeper knowledge.
+
+---
+
+### **Content**
+
+The application will present:
+
+* Key locations in Salzburg related to Mozart (e.g., birthplace, churches, residences)
+* A timeline of important life events
+* Short narrative texts for each location (“chapters”)
+* Optional multimedia (images, audio excerpts of compositions)
+* Interactive map navigation and possible guided routes
+
+---
+
+### **Task Distribution & Responsibilities**
+
+* **Programming:*****************
+* **UI/UX:**************
+* **Content & Research:************
+
+
+Each team member will take primary responsibility for one area while collaborating across tasks.
+
+---
+
+### **Goal**
+
+To create an engaging digital experience that allows users to explore the life of Wolfgang Amadeus Mozart in Salzburg through location-based storytelling, combining education with interactive technology.
