@@ -1,0 +1,23 @@
+{
+  "name": "mozart",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack starter with React and Express",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend",
+    "build": "npm run build --prefix frontend && npm run build --prefix backend"
+  },
+  "keywords": [
+    "starter",
+    "react",
+    "express",
+    "postgres"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
