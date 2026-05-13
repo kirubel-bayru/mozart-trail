@@ -41,8 +41,7 @@ export function BottomNav() {
   const isActive = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
 
   return (
-    <nav style={{
-      display: 'flex',
+    <nav className="bottom-nav" style={{
       alignItems: 'center',
       background: C.neutral,
       height: 76,

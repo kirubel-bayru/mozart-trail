@@ -1,4 +1,5 @@
 import { AppHeader } from '../components/AppHeader'
+import { BottomNav } from '../components/BottomNav'
 import { C, F } from '../theme'
 
 export function TreasuresPage() {
@@ -10,6 +11,7 @@ export function TreasuresPage() {
         <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.textDark, fontFamily: F.headline }}>Treasures</p>
         <p style={{ margin: 0, fontSize: 14, color: C.textMuted, fontFamily: F.body }}>Collect items by visiting locations</p>
       </div>
+      <BottomNav />
     </div>
   )
 }

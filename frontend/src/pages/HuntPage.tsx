@@ -4,6 +4,7 @@ import { notifications } from '@mantine/notifications'
 import { MapView } from '../components/MapView'
 import { ProgressCard } from '../components/ProgressCard'
 import { AppHeader } from '../components/AppHeader'
+import { BottomNav } from '../components/BottomNav'
 import { LocationDetailDrawer } from '../components/LocationDetailDrawer'
 import { LOCATIONS, UNLOCK_RADIUS_M } from '../data/locations'
 import type { MozartLocation } from '../data/locations'
@@ -211,6 +212,8 @@ export function HuntPage() {
           <LocateIcon />
         </button>
       </div>
+
+      <BottomNav />
 
       {/* Location detail drawer */}
       <LocationDetailDrawer

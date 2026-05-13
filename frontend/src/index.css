@@ -91,13 +91,32 @@ body {
   animation: user-pulse 2.2s ease-out infinite;
 }
 
-/* Hide on mobile, show on desktop */
+/* Info footer — desktop only */
 .desktop-only {
   display: flex !important;
 }
-
 @media (max-width: 767px) {
   .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Top nav links — desktop only */
+.top-nav-links {
+  display: flex !important;
+}
+@media (max-width: 767px) {
+  .top-nav-links {
+    display: none !important;
+  }
+}
+
+/* Bottom nav — mobile only */
+.bottom-nav {
+  display: flex !important;
+}
+@media (min-width: 768px) {
+  .bottom-nav {
     display: none !important;
   }
 }

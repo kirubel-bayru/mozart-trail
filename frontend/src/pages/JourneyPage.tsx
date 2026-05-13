@@ -1,4 +1,5 @@
 import { AppHeader } from '../components/AppHeader'
+import { BottomNav } from '../components/BottomNav'
 import { C, F } from '../theme'
 
 export function JourneyPage() {
@@ -10,6 +11,7 @@ export function JourneyPage() {
         <p style={{ margin: 0, fontSize: 18, fontWeight: 700, color: C.textDark, fontFamily: F.headline }}>My Journey</p>
         <p style={{ margin: 0, fontSize: 14, color: C.textMuted, fontFamily: F.body }}>Your progress and story chapters</p>
       </div>
+      <BottomNav />
     </div>
   )
 }

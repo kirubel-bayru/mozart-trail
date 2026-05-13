@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { LOCATIONS } from '../data/locations'
 import { AppHeader } from '../components/AppHeader'
+import { BottomNav } from '../components/BottomNav'
 import { C, F } from '../theme'
 
 function BookIcon() {
@@ -351,6 +352,7 @@ export function LocationDetailPage() {
         </div>
       </div>
 
+      <BottomNav />
     </div>
   )
 }

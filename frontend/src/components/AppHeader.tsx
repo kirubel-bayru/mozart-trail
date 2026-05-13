@@ -73,9 +73,8 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
           </h1>
         </div>
 
-        {/* Center — nav links (hidden on small mobile, shown ≥480px) */}
-        <nav style={{
-          display: 'flex',
+        {/* Center — nav links: desktop only, replaced by bottom nav on mobile */}
+        <nav className="top-nav-links" style={{
           alignItems: 'center',
           gap: 4,
         }}>
