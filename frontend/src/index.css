@@ -91,6 +91,17 @@ body {
   animation: user-pulse 2.2s ease-out infinite;
 }
 
+/* Hide on mobile, show on desktop */
+.desktop-only {
+  display: flex !important;
+}
+
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }

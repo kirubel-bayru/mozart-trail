@@ -1,25 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { LOCATIONS } from '../data/locations'
-import { BottomNav } from '../components/BottomNav'
+import { AppHeader } from '../components/AppHeader'
 import { C, F } from '../theme'
-
-function BackIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path d="M19 12H5M5 12l7 7M5 12l7-7" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function ProfileIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8" r="4" stroke="white" strokeWidth="2" />
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function BookIcon() {
   return (
@@ -35,15 +18,6 @@ function QuizIcon() {
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path d="M9 11l3 3L22 4" stroke={C.tertiary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke={C.tertiary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function LocationPinIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="white" />
-      <circle cx="12" cy="9" r="2.5" fill={C.primary} />
     </svg>
   )
 }
@@ -96,8 +70,11 @@ export function LocationDetailPage() {
 
   if (!location) {
     return (
-      <div style={{ height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: F.body }}>
-        <p>Location not found.</p>
+      <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', fontFamily: F.body }}>
+        <AppHeader showBack />
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <p>Location not found.</p>
+        </div>
       </div>
     )
   }
@@ -106,30 +83,7 @@ export function LocationDetailPage() {
 
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', background: C.neutral, overflow: 'hidden' }}>
-      {/* Header */}
-      <header style={{
-        height: 60,
-        background: C.primary,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 18px',
-        flexShrink: 0,
-        zIndex: 10,
-      }}>
-        <button
-          onClick={() => navigate(-1)}
-          style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}
-        >
-          <BackIcon />
-        </button>
-        <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'white', fontFamily: F.headline }}>
-          Mozart's Trail
-        </h1>
-        <button style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
-          <ProfileIcon />
-        </button>
-      </header>
+      <AppHeader showBack />
 
       {/* Scrollable body */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
@@ -371,8 +325,8 @@ export function LocationDetailPage() {
             Start Quiz
           </button>
 
-          {/* Info footer */}
-          <div style={{
+          {/* Info footer — desktop only */}
+          <div className="desktop-only" style={{
             display: 'flex',
             gap: 1,
             marginTop: 24,
@@ -397,8 +351,6 @@ export function LocationDetailPage() {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <BottomNav />
     </div>
   )
 }

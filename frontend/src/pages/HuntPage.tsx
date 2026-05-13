@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { notifications } from '@mantine/notifications'
 import { MapView } from '../components/MapView'
 import { ProgressCard } from '../components/ProgressCard'
-import { BottomNav } from '../components/BottomNav'
+import { AppHeader } from '../components/AppHeader'
 import { LocationDetailDrawer } from '../components/LocationDetailDrawer'
 import { LOCATIONS, UNLOCK_RADIUS_M } from '../data/locations'
 import type { MozartLocation } from '../data/locations'
@@ -11,23 +11,6 @@ import { haversineDistance } from '../lib/geo'
 import { fetchWalkingRoute } from '../lib/ors'
 import type { RouteResult } from '../lib/ors'
 import { C, F } from '../theme'
-
-function MenuIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path d="M3 12h18M3 6h18M3 18h18" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function ProfileIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8" r="4" stroke="white" strokeWidth="2" />
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 function LocateIcon() {
   return (
@@ -164,59 +147,29 @@ export function HuntPage() {
 
   return (
     <div style={{ height: '100dvh', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: C.neutral }}>
-      {/* Header */}
-      <header style={{
-        height: 60,
-        background: C.primary,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 18px',
-        flexShrink: 0,
-        zIndex: 10,
-      }}>
-        <button style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
-          <MenuIcon />
+      <AppHeader />
+
+      {/* Mode badge — sits just below header */}
+      <div style={{ position: 'absolute', top: 68, right: 16, zIndex: 950 }}>
+        <button
+          onClick={() => setIsBrowseMode((b) => !b)}
+          style={{
+            background: isBrowseMode ? 'rgba(255,255,255,0.92)' : C.secondary,
+            border: 'none',
+            borderRadius: 20,
+            padding: '4px 12px',
+            fontSize: 10,
+            fontWeight: 800,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            color: isBrowseMode ? C.primary : C.textDark,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          }}
+        >
+          {isBrowseMode ? '👁 Browse' : '🎯 Hunt'}
         </button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <h1 style={{
-            margin: 0,
-            fontSize: 20,
-            fontWeight: 700,
-            color: 'white',
-            fontFamily: F.headline,
-            letterSpacing: '0.02em',
-          }}>
-            Mozart's Trail
-          </h1>
-
-          {/* Mode badge */}
-          <button
-            onClick={() => setIsBrowseMode((b) => !b)}
-            title={isBrowseMode ? 'Switch to Hunt Mode (GPS)' : 'Switch to Browse Mode'}
-            style={{
-              background: isBrowseMode ? 'rgba(255,255,255,0.15)' : 'rgba(212,175,55,0.25)',
-              border: `1px solid ${isBrowseMode ? 'rgba(255,255,255,0.3)' : 'rgba(212,175,55,0.5)'}`,
-              borderRadius: 20,
-              padding: '3px 9px',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-              cursor: 'pointer',
-              color: isBrowseMode ? 'rgba(255,255,255,0.85)' : C.secondary,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {isBrowseMode ? 'Browse' : 'Hunt'}
-          </button>
-        </div>
-
-        <button style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex' }}>
-          <ProfileIcon />
-        </button>
-      </header>
+      </div>
 
       {/* Map area */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
@@ -258,9 +211,6 @@ export function HuntPage() {
           <LocateIcon />
         </button>
       </div>
-
-      {/* Bottom nav */}
-      <BottomNav />
 
       {/* Location detail drawer */}
       <LocationDetailDrawer
