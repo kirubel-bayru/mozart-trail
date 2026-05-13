@@ -53,6 +53,9 @@ export default {
       "process.env.API_BASE_URL": JSON.stringify(
         process.env.API_BASE_URL || "http://localhost:4000",
       ),
+      "process.env.ORS_API_KEY": JSON.stringify(
+        process.env.ORS_API_KEY || "",
+      ),
     }),
   ],
   devServer: {

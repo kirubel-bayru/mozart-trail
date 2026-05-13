@@ -1,19 +1,102 @@
+:root {
+  --primary:      #8B0000;
+  --secondary:    #D4AF37;
+  --tertiary:     #5D4037;
+  --neutral:      #F5F5DC;
+  --neutral-dark: #E8E5C8;
+  --text:         #2C1810;
+  --text-muted:   #7A6A5A;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
   margin: 0;
-  min-height: 100%;
+  padding: 0;
+  height: 100%;
 }
 
 body {
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
-    Helvetica,
-    Arial,
-    sans-serif;
-  background: #f8f9fa;
+  font-family: 'Manrope', Inter, system-ui, -apple-system, sans-serif;
+  background: var(--neutral);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ESRI Topo tiles — warm vintage palette */
+.leaflet-tile-pane {
+  filter: sepia(25%) saturate(80%) brightness(94%) contrast(103%);
+}
+
+/* Location name labels */
+.location-label {
+  background: rgba(245, 245, 220, 0.96) !important;
+  border: none !important;
+  border-radius: 20px !important;
+  padding: 4px 10px !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: var(--tertiary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  white-space: nowrap !important;
+}
+
+.location-label--unlocked {
+  background: rgba(255, 255, 255, 0.97) !important;
+  color: var(--text) !important;
+  box-shadow: 0 2px 10px rgba(139, 0, 0, 0.15) !important;
+}
+
+.leaflet-tooltip::before {
+  display: none !important;
+}
+
+/* Pulsing user location dot */
+.user-location-marker {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-dot {
+  width: 16px;
+  height: 16px;
+  background: #3b82f6;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.55);
+  position: relative;
+  z-index: 2;
+}
+
+.user-pulse-ring {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.22);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: user-pulse 2.2s ease-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes user-pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.35); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1.9);  opacity: 0; }
 }
