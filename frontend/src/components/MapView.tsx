@@ -31,8 +31,7 @@ function createMarkerIcon(unlocked: boolean, isBrowseMode: boolean) {
     html: `<div style="
       width:${size}px;height:${size}px;background:${color};
       border-radius:50%;display:flex;align-items:center;justify-content:center;
-      border:${border};box-shadow:${shadow};
-      cursor:${!unlocked && !isBrowseMode ? 'default' : 'pointer'};
+      border:${border};box-shadow:${shadow};cursor:pointer;
     ">${lockSvg}</div>`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
@@ -60,13 +59,14 @@ interface MapViewProps {
   locations: MozartLocation[]
   userPosition: [number, number] | null
   flyTarget: [number, number] | null
-  routeData: object | null
+  routeData: object | null       // single-location route (red)
+  trailRouteData: object | null  // full trail route (gold)
   routeKey: number
   isBrowseMode: boolean
   onLocationClick: (loc: MozartLocation) => void
 }
 
-export function MapView({ locations, userPosition, flyTarget, routeData, routeKey, isBrowseMode, onLocationClick }: MapViewProps) {
+export function MapView({ locations, userPosition, flyTarget, routeData, trailRouteData, routeKey, isBrowseMode, onLocationClick }: MapViewProps) {
   return (
     <MapContainer
       center={[47.7990, 13.0455]}
@@ -81,11 +81,21 @@ export function MapView({ locations, userPosition, flyTarget, routeData, routeKe
         maxZoom={18}
       />
 
+      {/* Single-location route — red */}
       {routeData && (
         <GeoJSON
-          key={routeKey}
+          key={`single-${routeKey}`}
           data={routeData as any}
-          style={{ color: C.primary, weight: 5, opacity: 0.8, dashArray: '10 7', lineCap: 'round' }}
+          style={{ color: C.primary, weight: 5, opacity: 0.85, dashArray: '10 7', lineCap: 'round' }}
+        />
+      )}
+
+      {/* Full trail route — gold */}
+      {trailRouteData && (
+        <GeoJSON
+          key={`trail-${routeKey}`}
+          data={trailRouteData as any}
+          style={{ color: C.secondary, weight: 5, opacity: 0.9, dashArray: '1 8', lineCap: 'round' }}
         />
       )}
 
