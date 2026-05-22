@@ -32,6 +32,10 @@ export function saveQuizResult(result: QuizResult) {
   writeAll([...rest, result])
 }
 
+export function getAllQuizResults(): QuizResult[] {
+  return readAll()
+}
+
 export function getTotalPointsEarned(): number {
   return readAll().reduce((sum, r) => sum + r.pointsEarned, 0)
 }
