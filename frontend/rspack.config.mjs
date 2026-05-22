@@ -74,12 +74,18 @@ export default {
       "process.env.ORS_API_KEY": JSON.stringify(
         process.env.ORS_API_KEY || "",
       ),
+      "process.env.USE_MUSIC_API": JSON.stringify(
+        process.env.USE_MUSIC_API || "false",
+      ),
     }),
   ],
   devServer: {
     port: 5173,
     hot: true,
     historyApiFallback: true,
+    client: {
+      logging: "info",
+    },
     proxy: [
       {
         context: ["/api"],

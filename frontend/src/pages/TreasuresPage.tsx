@@ -4,6 +4,7 @@ import { AppHeader } from '../components/AppHeader'
 import { BottomNav } from '../components/BottomNav'
 import { getTreasureEntries } from '../data/treasures'
 import { getAllQuizResults, getTotalPointsEarned } from '../lib/quizProgress'
+import { getAllMusicProgress, getMusicCipherSolvedCount, getTotalMusicPoints } from '../lib/musicProgress'
 import { TOTAL_LOCATIONS } from '../data/locations'
 import { C, F } from '../theme'
 
@@ -51,12 +52,16 @@ export function TreasuresPage() {
   const resultsByLocation = new Map(
     getAllQuizResults().map((r) => [r.locationId, r] as const),
   )
+  const musicByLocation = new Map(
+    getAllMusicProgress().map((m) => [m.locationId, m] as const),
+  )
 
   const allEntries = getTreasureEntries().map(({ location, treasure }) => ({
     location,
     treasure,
     result: resultsByLocation.get(location.id),
     collected: resultsByLocation.has(location.id),
+    music: musicByLocation.get(location.id),
   }))
 
   const entries =
@@ -67,7 +72,10 @@ export function TreasuresPage() {
         : allEntries
 
   const collectedCount = resultsByLocation.size
-  const totalPoints = getTotalPointsEarned()
+  const quizPoints = getTotalPointsEarned()
+  const musicPoints = getTotalMusicPoints()
+  const ciphersSolved = getMusicCipherSolvedCount()
+  const totalPoints = quizPoints + musicPoints
   const pct = Math.round((collectedCount / TOTAL_LOCATIONS) * 100)
 
   return (
@@ -131,7 +139,10 @@ export function TreasuresPage() {
                 {collectedCount} / {TOTAL_LOCATIONS}
               </p>
               <p style={{ margin: '6px 0 0', fontFamily: F.body, fontSize: 13, color: C.textMuted }}>
-                <span style={{ color: C.primary, fontWeight: 700 }}>{totalPoints}</span> pts earned
+                <span style={{ color: C.primary, fontWeight: 700 }}>{totalPoints}</span> pts total
+              </p>
+              <p style={{ margin: '4px 0 0', fontFamily: F.body, fontSize: 11, color: C.textMuted }}>
+                🎵 {ciphersSolved} ciphers · quiz {quizPoints} + music {musicPoints}
               </p>
             </div>
             <div
@@ -227,7 +238,7 @@ export function TreasuresPage() {
             gap: 12,
           }}
         >
-          {entries.map(({ location, treasure, result, collected }) => {
+          {entries.map(({ location, treasure, result, collected, music }) => {
             const expanded = expandedId === location.id
             return (
               <div
@@ -265,23 +276,28 @@ export function TreasuresPage() {
                       {treasure.emoji}
                     </span>
                     {!collected && <LockIcon />}
-                    {collected && result?.correct === result?.total && (
-                      <span
-                        style={{
-                          fontFamily: F.body,
-                          fontSize: 9,
-                          fontWeight: 800,
-                          letterSpacing: '0.08em',
-                          textTransform: 'uppercase',
-                          color: C.secondaryDark,
-                          background: 'rgba(212,175,55,0.15)',
-                          padding: '3px 7px',
-                          borderRadius: 6,
-                        }}
-                      >
-                        Perfect
-                      </span>
-                    )}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                      {music?.cipherSolved && (
+                        <span style={{ fontSize: 14 }} title="Musical cipher solved">🎵</span>
+                      )}
+                      {collected && result?.correct === result?.total && (
+                        <span
+                          style={{
+                            fontFamily: F.body,
+                            fontSize: 9,
+                            fontWeight: 800,
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase',
+                            color: C.secondaryDark,
+                            background: 'rgba(212,175,55,0.15)',
+                            padding: '3px 7px',
+                            borderRadius: 6,
+                          }}
+                        >
+                          Perfect
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <p
@@ -309,11 +325,14 @@ export function TreasuresPage() {
                   >
                     {treasure.name}
                   </p>
-                  {collected && result && (
-                    <p style={{ margin: '6px 0 0', fontFamily: F.body, fontSize: 11, color: C.primary, fontWeight: 700 }}>
-                      +{result.pointsEarned} pts
-                    </p>
-                  )}
+                    {collected && result && (
+                      <p style={{ margin: '6px 0 0', fontFamily: F.body, fontSize: 11, color: C.primary, fontWeight: 700 }}>
+                        +{result.pointsEarned} quiz
+                        {music && (music.listenPoints + music.cipherPoints) > 0
+                          ? ` · +${music.listenPoints + music.cipherPoints} music`
+                          : ''}
+                      </p>
+                    )}
                 </button>
 
                 {expanded && (
@@ -345,6 +364,14 @@ export function TreasuresPage() {
                     ) : (
                       <p style={{ margin: '0 0 12px', fontFamily: F.body, fontSize: 12, color: C.textMuted, fontStyle: 'italic' }}>
                         Complete the quiz at this stop to unlock this treasure.
+                      </p>
+                    )}
+
+                    {music && (music.listenComplete || music.cipherSolved) && (
+                      <p style={{ margin: '0 0 12px', fontFamily: F.body, fontSize: 12, color: C.textMuted }}>
+                        🎵 Music: {music.listenComplete ? 'listened' : ''}
+                        {music.listenComplete && music.cipherSolved ? ' · ' : ''}
+                        {music.cipherSolved ? 'cipher solved' : ''}
                       </p>
                     )}
 

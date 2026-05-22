@@ -4,6 +4,7 @@ import { LOCATIONS } from '../data/locations'
 import { AppHeader } from '../components/AppHeader'
 import { BottomNav } from '../components/BottomNav'
 import { fetchOpeningHours, formatOsmHours } from '../lib/overpass'
+import { MusicListenCard } from '../components/MusicListenCard'
 import { C, F } from '../theme'
 
 function readingTime(text: string) {
@@ -286,6 +287,8 @@ export function LocationDetailPage() {
               </div>
             )}
           </div>
+
+          <MusicListenCard locationId={location.id} />
 
           {/* Intro */}
           <p style={{
