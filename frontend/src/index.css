@@ -130,3 +130,38 @@ body {
   0%   { transform: translate(-50%, -50%) scale(0.35); opacity: 1; }
   100% { transform: translate(-50%, -50%) scale(1.9);  opacity: 0; }
 }
+
+/* Auth page — full-bg + floating card */
+.auth-page     { position: fixed; inset: 0; overflow: hidden; }
+.auth-bg       { position: absolute; inset: 0; }
+.auth-overlay  { position: absolute; inset: 0;
+                 background: linear-gradient(135deg,
+                   rgba(6,1,1,0.82) 0%,
+                   rgba(6,1,1,0.45) 55%,
+                   rgba(6,1,1,0.6) 100%); }
+
+/* Mobile: stacked — brand on top, card slides up from bottom */
+.auth-layout   { position: relative; height: 100%; display: flex;
+                 flex-direction: column; }
+.auth-brand    { flex: 1; padding: 48px 28px 20px;
+                 display: flex; flex-direction: column; justify-content: flex-end; }
+.auth-card-wrap { padding: 0 16px 28px; }
+.auth-card     { background: rgba(254,250,242,0.96);
+                 backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+                 border-radius: 24px; padding: 28px 22px 32px;
+                 max-height: 72vh; overflow-y: auto;
+                 box-shadow: 0 24px 60px rgba(0,0,0,0.45); }
+
+/* Desktop: side by side */
+@media (min-width: 640px) {
+  .auth-layout    { flex-direction: row; align-items: center;
+                    padding: 40px 48px; gap: 36px; }
+  .auth-brand     { flex: 1; padding: 0; justify-content: center; }
+  .auth-card-wrap { width: 420px; flex-shrink: 0; padding: 0; }
+  .auth-card      { max-height: 88vh; padding: 40px 36px 44px; border-radius: 28px; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
