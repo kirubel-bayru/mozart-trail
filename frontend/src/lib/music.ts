@@ -1,5 +1,5 @@
 import { getSampleMusicResponse } from '../data/sampleMusic'
-import type { MusicTrack, MusicTrackResponse } from '../types/music'
+import type { MusicTrackResponse } from '../types/music'
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:4000'
 const USE_MUSIC_API = process.env.USE_MUSIC_API === 'true'

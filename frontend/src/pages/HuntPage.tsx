@@ -175,11 +175,6 @@ export function HuntPage() {
     }
   }, [userPos])
 
-  const handleClearRoute = useCallback(() => {
-    setRoute(null)
-    setRouteKey((k) => k + 1)
-  }, [])
-
   const handleToggleTrail = useCallback(async () => {
     if (trailRoute) {
       setTrailRoute(null)
