@@ -40,15 +40,22 @@ function ProfileIcon({ color }: { color: string }) {
 }
 
 const TABS = [
-  { to: '/',          label: 'The Hunt',   Icon: MapIcon },
+  { to: '/hunt',      label: 'The Hunt',   Icon: MapIcon },
   { to: '/treasures', label: 'Treasures',  Icon: TrophyIcon },
   { to: '/journey',   label: 'My Journey', Icon: JourneyIcon },
   { to: '/profile',   label: 'Profile',    Icon: ProfileIcon },
 ]
 
+function isHuntRoute(pathname: string) {
+  return pathname === '/hunt' || pathname.startsWith('/location') || pathname.startsWith('/quiz')
+}
+
 export function BottomNav() {
   const { pathname } = useLocation()
-  const isActive = (to: string) => (to === '/' ? pathname === '/' : pathname.startsWith(to))
+  const isActive = (to: string) => {
+    if (to === '/hunt') return isHuntRoute(pathname)
+    return pathname.startsWith(to)
+  }
 
   return (
     <nav className="bottom-nav" style={{

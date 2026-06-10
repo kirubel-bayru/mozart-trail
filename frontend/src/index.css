@@ -101,6 +101,168 @@ body {
   }
 }
 
+/* Home page */
+.home-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #2c1810;
+}
+.home-main {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.home-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.03);
+}
+.home-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    165deg,
+    rgba(44, 24, 16, 0.72) 0%,
+    rgba(107, 0, 0, 0.45) 45%,
+    rgba(44, 24, 16, 0.82) 100%
+  );
+}
+.home-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(32px, 8vw, 64px) clamp(24px, 5vw, 40px);
+  text-align: center;
+}
+.home-eyebrow {
+  margin: 0 0 16px;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.9);
+}
+.home-title {
+  margin: 0 0 18px;
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: clamp(36px, 8vw, 56px);
+  font-weight: 700;
+  line-height: 1.08;
+  color: white;
+}
+.home-title em {
+  font-style: italic;
+  color: #d4af37;
+}
+.home-lead {
+  margin: 0 auto 32px;
+  max-width: 520px;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: clamp(15px, 2.5vw, 17px);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+}
+.home-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: linear-gradient(135deg, #8b0000 0%, #b22222 100%);
+  border-radius: 14px;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: white;
+  text-decoration: none;
+  box-shadow: 0 8px 28px rgba(139, 0, 0, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.home-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(139, 0, 0, 0.55);
+  opacity: 0.96;
+}
+.home-cta:active {
+  transform: translateY(0);
+}
+.home-features {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: clamp(36px, 6vw, 52px);
+  text-align: left;
+}
+@media (min-width: 640px) {
+  .home-features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+}
+.home-feature {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 18px 16px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+}
+.home-feature-icon {
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.home-feature-title {
+  margin: 0 0 4px;
+  font-family: "Noto Serif", Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+}
+.home-feature-text {
+  margin: 0;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+/* App header */
+.header-brand {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.header-brand:hover {
+  opacity: 0.92;
+}
+.header-brand:active {
+  transform: scale(0.98);
+}
+.header-back-btn {
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.header-back-btn:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.header-profile-btn:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
 /* Top nav links — desktop only */
 .top-nav-links {
   display: flex !important;

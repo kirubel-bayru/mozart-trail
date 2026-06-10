@@ -351,7 +351,7 @@ export function JourneyPage() {
               Visit any Mozart location in Salzburg, read its story, and complete the quiz to record your progress.
             </p>
             <Link
-              to="/"
+              to="/hunt"
               style={{
                 display: 'inline-block',
                 padding: '12px 24px',

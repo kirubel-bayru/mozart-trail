@@ -210,7 +210,7 @@ export function TreasuresPage() {
               Visit a location, read its story, and complete the quiz to collect digital artifacts.
             </p>
             <Link
-              to="/"
+              to="/hunt"
               style={{
                 display: 'inline-block',
                 padding: '12px 24px',

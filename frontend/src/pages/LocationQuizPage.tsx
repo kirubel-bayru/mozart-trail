@@ -519,7 +519,7 @@ export function LocationQuizPage() {
               </button>
               <button
                 type="button"
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/hunt')}
                 style={{
                   width: '100%',
                   padding: '13px 0',
