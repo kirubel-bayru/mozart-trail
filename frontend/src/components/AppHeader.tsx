@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { C, F } from '../theme'
 
 interface AppHeaderProps {
@@ -13,26 +14,21 @@ function BackIcon() {
   )
 }
 
-function ProfileIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8" r="4" stroke="white" strokeWidth="2" />
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
 const NAV_LINKS = [
   { to: '/',          label: 'The Hunt'   },
   { to: '/treasures', label: 'Treasures'  },
   { to: '/journey',   label: 'My Journey' },
+  { to: '/profile',   label: 'Profile'    },
 ]
 
 export function AppHeader({ showBack = false }: AppHeaderProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const { user, isGuest } = useAuth()
 
   const isActive = (to: string) => to === '/' ? pathname === '/' : pathname.startsWith(to)
+
+  const avatarInitial = user ? user.displayName[0].toUpperCase() : null
 
   return (
     <header style={{
@@ -41,7 +37,6 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
       zIndex: 100,
       boxShadow: '0 2px 12px rgba(0,0,0,0.2)',
     }}>
-      {/* Main row */}
       <div style={{
         height: 60,
         display: 'flex',
@@ -73,11 +68,8 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
           </h1>
         </div>
 
-        {/* Center — nav links: desktop only, replaced by bottom nav on mobile */}
-        <nav className="top-nav-links" style={{
-          alignItems: 'center',
-          gap: 4,
-        }}>
+        {/* Center — desktop nav links */}
+        <nav className="top-nav-links" style={{ alignItems: 'center', gap: 4 }}>
           {NAV_LINKS.map(({ to, label }) => {
             const active = isActive(to)
             return (
@@ -105,10 +97,48 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
           })}
         </nav>
 
-        {/* Right — profile */}
-        <button style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', display: 'flex', flexShrink: 0 }}>
-          <ProfileIcon />
-        </button>
+        {/* Right — avatar / profile link */}
+        <Link
+          to="/profile"
+          style={{ textDecoration: 'none', flexShrink: 0 }}
+        >
+          {avatarInitial ? (
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: C.secondary,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 15,
+                fontWeight: 800,
+                fontFamily: F.body,
+                color: C.textDark,
+              }}
+            >
+              {avatarInitial}
+            </div>
+          ) : (
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: isGuest ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="8" r="4" stroke="white" strokeWidth="2" />
+                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+          )}
+        </Link>
       </div>
     </header>
   )

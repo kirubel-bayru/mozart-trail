@@ -30,10 +30,20 @@ function JourneyIcon({ color }: { color: string }) {
   )
 }
 
+function ProfileIcon({ color }: { color: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="4" stroke={color} strokeWidth="2"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 const TABS = [
   { to: '/',          label: 'The Hunt',   Icon: MapIcon },
   { to: '/treasures', label: 'Treasures',  Icon: TrophyIcon },
   { to: '/journey',   label: 'My Journey', Icon: JourneyIcon },
+  { to: '/profile',   label: 'Profile',    Icon: ProfileIcon },
 ]
 
 export function BottomNav() {

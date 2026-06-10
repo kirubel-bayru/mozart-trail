@@ -8,7 +8,7 @@ import { C } from '../theme'
 
 L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/'
 
-function createMarkerIcon(unlocked: boolean, isBrowseMode: boolean) {
+function createMarkerIcon(unlocked: boolean) {
   const size = unlocked ? 46 : 36
   const color = unlocked ? C.secondary : '#AAAAAA'
   const border = unlocked ? `3px solid ${C.neutral}` : `2px solid rgba(255,255,255,0.8)`
@@ -66,7 +66,7 @@ interface MapViewProps {
   onLocationClick: (loc: MozartLocation) => void
 }
 
-export function MapView({ locations, userPosition, flyTarget, routeData, trailRouteData, routeKey, isBrowseMode, onLocationClick }: MapViewProps) {
+export function MapView({ locations, userPosition, flyTarget, routeData, trailRouteData, routeKey, onLocationClick }: MapViewProps) {
   return (
     <MapContainer
       center={[47.7990, 13.0455]}
@@ -103,7 +103,7 @@ export function MapView({ locations, userPosition, flyTarget, routeData, trailRo
         <Marker
           key={loc.id}
           position={[loc.lat, loc.lng]}
-          icon={createMarkerIcon(loc.unlocked, isBrowseMode)}
+          icon={createMarkerIcon(loc.unlocked)}
           eventHandlers={{ click: () => onLocationClick(loc) }}
         >
           <Tooltip

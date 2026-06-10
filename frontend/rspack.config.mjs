@@ -39,6 +39,10 @@ export default {
   module: {
     rules: [
       {
+        test: /\.(png|jpe?g|gif|svg|webp|avif)$/i,
+        type: "asset/resource",
+      },
+      {
         test: /\.tsx?$/,
         type: "javascript/auto",
         use: [
