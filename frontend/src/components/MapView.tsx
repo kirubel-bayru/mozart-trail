@@ -55,6 +55,31 @@ function MapController({ locations, flyTarget }: { locations: MozartLocation[]; 
   return null
 }
 
+function MapResize() {
+  const map = useMap()
+
+  useEffect(() => {
+    const container = map.getContainer().parentElement
+    if (!container) return
+
+    const refresh = () => {
+      map.invalidateSize()
+    }
+
+    refresh()
+    const observer = new ResizeObserver(refresh)
+    observer.observe(container)
+    window.addEventListener('resize', refresh)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', refresh)
+    }
+  }, [map])
+
+  return null
+}
+
 interface MapViewProps {
   locations: MozartLocation[]
   userPosition: [number, number] | null
@@ -119,6 +144,7 @@ export function MapView({ locations, userPosition, flyTarget, routeData, trailRo
 
       {userPosition && <UserLocationMarker position={userPosition} />}
       <MapController locations={locations} flyTarget={flyTarget} />
+      <MapResize />
     </MapContainer>
   )
 }

@@ -3,10 +3,28 @@ import { C, F } from '../theme'
 interface ProgressCardProps {
   unlocked: number
   total: number
+  compact?: boolean
 }
 
-export function ProgressCard({ unlocked, total }: ProgressCardProps) {
+export function ProgressCard({ unlocked, total, compact = false }: ProgressCardProps) {
   const pct = Math.round((unlocked / total) * 100)
+
+  if (compact) {
+    return (
+      <div className="progress-card-compact">
+        <div className="progress-card-compact-label">
+          <span className="progress-card-compact-eyebrow">Progress</span>
+          <span className="progress-card-compact-count">
+            {unlocked}<span className="progress-card-compact-total">/{total}</span> unlocked
+          </span>
+        </div>
+        <div className="progress-card-compact-bar">
+          <div className="progress-card-compact-fill" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="progress-card-compact-pct">{pct}%</span>
+      </div>
+    )
+  }
 
   return (
     <div style={{
@@ -34,7 +52,7 @@ export function ProgressCard({ unlocked, total }: ProgressCardProps) {
 
         <div style={{
           width: 44, height: 44, borderRadius: 12,
-          background: `rgba(212,175,55,0.15)`, border: `1px solid rgba(212,175,55,0.3)`,
+          background: 'rgba(212,175,55,0.15)', border: '1px solid rgba(212,175,55,0.3)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
