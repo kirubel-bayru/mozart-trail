@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
 import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
@@ -6,52 +7,29 @@ import { useAuth } from '../context/AuthContext'
 import { localLogin, localRegister } from '../lib/authApi'
 import { getAllQuizResults, getTotalPointsEarned } from '../lib/quizProgress'
 import { getMusicCipherSolvedCount, getTotalMusicPoints } from '../lib/musicProgress'
-import { TOTAL_LOCATIONS } from '../data/locations'
-import { C, F } from '../theme'
+import { LOCATIONS, TOTAL_LOCATIONS } from '../data/locations'
 import heroBg from '../assets/salzburg-bg.png'
 
 type Tab = 'login' | 'register'
 
-// ── Glass input — white text on transparent bg ────────────────────────────────
 function GlassInput({ label, type, value, onChange, placeholder }: {
   label: string; type: string; value: string
   onChange: (v: string) => void; placeholder?: string
 }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label style={{
-        fontFamily: F.body, fontSize: 10, fontWeight: 800,
-        letterSpacing: '0.14em', textTransform: 'uppercase',
-        color: 'rgba(255,255,255,0.65)',
-      }}>
-        {label}
-      </label>
+    <div className="auth-field">
+      <label className="auth-field-label">{label}</label>
       <input
-        type={type} value={value} placeholder={placeholder}
+        type={type}
+        value={value}
+        placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        style={{
-          padding: '13px 16px', fontFamily: F.body, fontSize: 14,
-          border: '1.5px solid rgba(255,255,255,0.22)',
-          borderRadius: 12,
-          background: 'rgba(255,255,255,0.10)',
-          color: 'white',
-          outline: 'none',
-          width: '100%', boxSizing: 'border-box',
-        }}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(212,175,55,0.75)'
-          e.currentTarget.style.background = 'rgba(255,255,255,0.15)'
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'
-          e.currentTarget.style.background = 'rgba(255,255,255,0.10)'
-        }}
+        className="auth-field-input"
       />
     </div>
   )
 }
 
-// ── Auth full-page screen ─────────────────────────────────────────────────────
 function AuthPage() {
   const { setAuth, enterGuestMode } = useAuth()
   const [tab, setTab] = useState<Tab>('login')
@@ -83,280 +61,247 @@ function AuthPage() {
   return (
     <div className="profile-auth-page">
       <div className="auth-page">
-        {/* Full-screen background image */}
         <div className="auth-bg" style={{ backgroundImage: `url(${heroBg})` }} />
-        {/* Dark overlay */}
         <div className="auth-overlay" />
 
-        {/* Content — centered vertically & horizontally */}
         <div className="auth-layout">
-
-        {/* Brand */}
-        <div className="auth-brand">
-          <p style={{
-            margin: '0 0 8px', fontFamily: F.body, fontSize: 11, fontWeight: 800,
-            letterSpacing: '0.28em', textTransform: 'uppercase', color: C.secondary,
-          }}>
-            Mozart's Trail
-          </p>
-          <h1 style={{
-            margin: 0, fontFamily: F.headline,
-            fontSize: 'clamp(30px, 7vw, 56px)',
-            fontWeight: 700, color: 'white', lineHeight: 1.05,
-          }}>
-            DISCOVER SALZBURG
-          </h1>
-        </div>
-
-        {/* Glass card — centered */}
-        <div className="auth-card-wrap">
-          <div className="auth-card">
-
-            {/* Tabs */}
-            <div style={{
-              display: 'flex', gap: 0, marginBottom: 24,
-              borderBottom: '1.5px solid rgba(255,255,255,0.18)',
-            }}>
-              {(['login', 'register'] as Tab[]).map((t) => (
-                <button key={t} type="button" onClick={() => { setTab(t); reset() }}
-                  style={{
-                    flex: 1, padding: '10px 0', border: 'none', background: 'transparent',
-                    fontFamily: F.body, fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                    color: tab === t ? 'white' : 'rgba(255,255,255,0.42)',
-                    borderBottom: `2px solid ${tab === t ? C.secondary : 'transparent'}`,
-                    marginBottom: -1.5, transition: 'color 0.15s, border-color 0.15s',
-                  }}>
-                  {t === 'login' ? 'Log In' : 'Create Account'}
-                </button>
-              ))}
-            </div>
-
-            {/* Fields */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 20 }}>
-              {tab === 'register' && (
-                <GlassInput label="Your Name" type="text" value={displayName}
-                  onChange={setDisplayName} placeholder="Wolfgang A. Mozart" />
-              )}
-              <GlassInput label="Email" type="email" value={email}
-                onChange={setEmail} placeholder="you@example.com" />
-              <GlassInput label="Password" type="password" value={password}
-                onChange={setPassword}
-                placeholder={tab === 'register' ? 'At least 6 characters' : '••••••••'} />
-            </div>
-
-            {error && (
-              <div style={{
-                marginBottom: 16, padding: '10px 14px',
-                background: 'rgba(200,30,30,0.25)',
-                border: '1px solid rgba(255,100,100,0.3)',
-                borderRadius: 10, fontFamily: F.body, fontSize: 13,
-                color: '#ffaaaa',
-              }}>
-                {error}
-              </div>
-            )}
-
-            {/* Primary button */}
-            <button type="button" onClick={handleSubmit} disabled={loading}
-              style={{
-                width: '100%', padding: '15px 0',
-                background: loading
-                  ? 'rgba(255,255,255,0.15)'
-                  : `linear-gradient(135deg, ${C.primary} 0%, #B22222 100%)`,
-                border: 'none', borderRadius: 14,
-                fontFamily: F.body, fontSize: 14, fontWeight: 800,
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-                color: loading ? 'rgba(255,255,255,0.5)' : 'white',
-                cursor: loading ? 'default' : 'pointer',
-                boxShadow: loading ? 'none' : '0 6px 24px rgba(139,0,0,0.5)',
-                marginBottom: 18,
-                transition: 'opacity 0.15s',
-              }}>
-              {loading ? 'Please wait…' : tab === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
-
-            {/* Divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.15)' }} />
-              <span style={{ fontFamily: F.body, fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>or</span>
-              <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.15)' }} />
-            </div>
-
-            {/* Guest */}
-            <button type="button" onClick={enterGuestMode}
-              style={{
-                width: '100%', padding: '13px 0',
-                background: 'rgba(255,255,255,0.08)',
-                border: '1.5px solid rgba(255,255,255,0.22)',
-                borderRadius: 14,
-                fontFamily: F.body, fontSize: 13, fontWeight: 600,
-                color: 'rgba(255,255,255,0.72)', cursor: 'pointer', marginBottom: 20,
-                transition: 'background 0.15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.14)' }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)' }}>
-              Continue as Guest
-            </button>
-
-            {/* Switch link */}
-            <p style={{
-              margin: 0, textAlign: 'center',
-              fontFamily: F.body, fontSize: 13, color: 'rgba(255,255,255,0.5)',
-            }}>
-              {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <button type="button"
-                onClick={() => { setTab(tab === 'login' ? 'register' : 'login'); reset() }}
-                style={{
-                  background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-                  fontFamily: F.body, fontSize: 13, fontWeight: 700, color: C.secondary,
-                  textDecoration: 'underline',
-                }}>
-                {tab === 'login' ? 'Sign up' : 'Log in'}
-              </button>
-            </p>
-
+          <div className="auth-brand">
+            <p className="auth-brand-eyebrow">Mozart's Trail</p>
+            <h1 className="auth-brand-title">Discover Salzburg</h1>
+            <p className="auth-brand-sub">Sign in to personalise your trail, or continue as a guest.</p>
           </div>
-        </div>
+
+          <div className="auth-card-wrap">
+            <div className="auth-card">
+              <div className="auth-tabs">
+                {(['login', 'register'] as Tab[]).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    className={`auth-tab${tab === t ? ' auth-tab--active' : ''}`}
+                    onClick={() => { setTab(t); reset() }}
+                  >
+                    {t === 'login' ? 'Log In' : 'Create Account'}
+                  </button>
+                ))}
+              </div>
+
+              <div className="auth-fields">
+                {tab === 'register' && (
+                  <GlassInput label="Your Name" type="text" value={displayName}
+                    onChange={setDisplayName} placeholder="Wolfgang A. Mozart" />
+                )}
+                <GlassInput label="Email" type="email" value={email}
+                  onChange={setEmail} placeholder="you@example.com" />
+                <GlassInput label="Password" type="password" value={password}
+                  onChange={setPassword}
+                  placeholder={tab === 'register' ? 'At least 6 characters' : '••••••••'} />
+              </div>
+
+              {error && <div className="auth-error">{error}</div>}
+
+              <button
+                type="button"
+                className="auth-submit"
+                onClick={handleSubmit}
+                disabled={loading}
+              >
+                {loading ? 'Please wait…' : tab === 'login' ? 'Sign In' : 'Create Account'}
+              </button>
+
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+
+              <button type="button" className="auth-guest-btn" onClick={enterGuestMode}>
+                Continue as Guest
+              </button>
+
+              <p className="auth-switch">
+                {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                <button
+                  type="button"
+                  className="auth-switch-link"
+                  onClick={() => { setTab(tab === 'login' ? 'register' : 'login'); reset() }}
+                >
+                  {tab === 'login' ? 'Sign up' : 'Log in'}
+                </button>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <AppFooter />
+      <div className="auth-footer-wrap">
+        <AppFooter />
+      </div>
     </div>
   )
 }
 
-// ── Logged-in profile ─────────────────────────────────────────────────────────
+function useTrailStats() {
+  const visitedIds = new Set(getAllQuizResults().map((r) => r.locationId))
+  const visitedCount = visitedIds.size
+  const quizPoints = getTotalPointsEarned()
+  const musicPoints = getTotalMusicPoints()
+  const ciphers = getMusicCipherSolvedCount()
+  const totalPoints = quizPoints + musicPoints
+  const pct = Math.round((visitedCount / TOTAL_LOCATIONS) * 100)
+  const nextStop = LOCATIONS.find((loc) => !visitedIds.has(loc.id)) ?? null
+
+  return { visitedCount, quizPoints, musicPoints, ciphers, totalPoints, pct, nextStop }
+}
+
+function ProgressCard({ showBreakdown }: { showBreakdown?: boolean }) {
+  const { visitedCount, quizPoints, musicPoints, ciphers, totalPoints, pct } = useTrailStats()
+  const listenPoints = musicPoints - ciphers * 15
+
+  return (
+    <div className="profile-card profile-card--progress">
+      <p className="profile-card-label">Trail Progress</p>
+      <div className="profile-stats-row">
+        <div className="profile-stat">
+          <span className="profile-stat-value">{visitedCount}/{TOTAL_LOCATIONS}</span>
+          <span className="profile-stat-label">Stops</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat-value">{totalPoints}</span>
+          <span className="profile-stat-label">Points</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat-value">{visitedCount}</span>
+          <span className="profile-stat-label">Treasures</span>
+        </div>
+        <div className="profile-stat">
+          <span className="profile-stat-value">{ciphers}</span>
+          <span className="profile-stat-label">Ciphers</span>
+        </div>
+      </div>
+      <div className="profile-progress-bar">
+        <div className="profile-progress-fill" style={{ width: `${pct}%` }} />
+      </div>
+      <p className="profile-progress-pct">{pct}% of the trail complete</p>
+
+      {showBreakdown && (
+        <div className="profile-breakdown">
+          <div className="profile-breakdown-row">
+            <span>Quiz points</span>
+            <span>{quizPoints} pts</span>
+          </div>
+          <div className="profile-breakdown-row">
+            <span>Music listen</span>
+            <span>{listenPoints} pts</span>
+          </div>
+          <div className="profile-breakdown-row">
+            <span>Cipher bonuses</span>
+            <span>{ciphers * 15} pts</span>
+          </div>
+          <div className="profile-breakdown-total">
+            <span>Total</span>
+            <span>{totalPoints} pts</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function QuickLinks() {
+  const { nextStop } = useTrailStats()
+
+  return (
+    <div className="profile-card">
+      <p className="profile-card-label">Quick Links</p>
+      <div className="profile-links">
+        <Link to="/hunt" className="profile-link">
+          <span className="profile-link-icon">🗺</span>
+          <span className="profile-link-text">
+            <strong>Open Map</strong>
+            <small>Explore Salzburg stops</small>
+          </span>
+        </Link>
+        <Link to="/journey" className="profile-link">
+          <span className="profile-link-icon">🎼</span>
+          <span className="profile-link-text">
+            <strong>My Journey</strong>
+            <small>Timeline &amp; milestones</small>
+          </span>
+        </Link>
+        <Link to="/treasures" className="profile-link">
+          <span className="profile-link-icon">🏆</span>
+          <span className="profile-link-text">
+            <strong>Treasures</strong>
+            <small>Collected rewards</small>
+          </span>
+        </Link>
+      </div>
+      {nextStop && (
+        <Link to={`/location/${nextStop.id}`} className="profile-next-stop">
+          <span className="profile-next-stop-label">Suggested next stop</span>
+          <span className="profile-next-stop-name">{nextStop.name}</span>
+        </Link>
+      )}
+    </div>
+  )
+}
+
 function UserProfile() {
   const { user, logout } = useAuth()
-  const visitedCount = getAllQuizResults().length
-  const quizPoints   = getTotalPointsEarned()
-  const musicPoints  = getTotalMusicPoints()
-  const totalPoints  = quizPoints + musicPoints
-  const ciphers      = getMusicCipherSolvedCount()
-  const pct          = Math.round((visitedCount / TOTAL_LOCATIONS) * 100)
-  const initial      = (user?.displayName ?? '?')[0].toUpperCase()
-  const joined       = user?.createdAt
+  const initial = (user?.displayName ?? '?')[0].toUpperCase()
+  const joined = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
     : null
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <div style={{
-          width: 60, height: 60, borderRadius: '50%', flexShrink: 0,
-          background: `linear-gradient(135deg, ${C.primary} 0%, ${C.secondary} 100%)`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 26, fontWeight: 800, fontFamily: F.body, color: 'white',
-          boxShadow: '0 4px 14px rgba(139,0,0,0.25)',
-        }}>{initial}</div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontFamily: F.headline, fontSize: 20, fontWeight: 700, color: C.textDark }}>
-            {user?.displayName}
-          </p>
-          <p style={{ margin: '3px 0 0', fontFamily: F.body, fontSize: 12, color: C.textMuted }}>{user?.email}</p>
-          {joined && <p style={{ margin: '2px 0 0', fontFamily: F.body, fontSize: 11, color: C.tertiaryLight }}>Joined {joined}</p>}
+    <div className="profile-body">
+      <div className="profile-hero">
+        <div className="profile-avatar profile-avatar--user">{initial}</div>
+        <div className="profile-hero-text">
+          <h2 className="profile-name">{user?.displayName}</h2>
+          <p className="profile-email">{user?.email}</p>
+          {joined && <p className="profile-meta">Trail member since {joined}</p>}
         </div>
       </div>
 
-      <div style={{ background: '#FEFAF2', borderRadius: 16, border: `1px solid ${C.neutralDark}`,
-        padding: '16px 18px', boxShadow: '0 2px 10px rgba(93,64,55,0.08)' }}>
-        <p style={{ margin: '0 0 12px', fontFamily: F.body, fontSize: 10, fontWeight: 800,
-          letterSpacing: '0.16em', textTransform: 'uppercase', color: C.secondaryDark }}>Trail Progress</p>
-        <div style={{ display: 'flex', marginBottom: 14 }}>
-          {[{val:`${visitedCount}/${TOTAL_LOCATIONS}`,label:'Stops'},{val:totalPoints,label:'Points'},{val:ciphers,label:'Ciphers'}]
-            .map(({val,label},i) => (
-            <div key={label} style={{ flex:1, textAlign:'center',
-              borderRight: i<2 ? `1px solid ${C.neutralDark}` : 'none',
-              paddingRight: i<2 ? 8 : 0, paddingLeft: i>0 ? 8 : 0 }}>
-              <p style={{ margin:0, fontFamily:F.headline, fontSize:22, fontWeight:700, color:C.primary, lineHeight:1 }}>{val}</p>
-              <p style={{ margin:'4px 0 0', fontFamily:F.body, fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:C.textMuted }}>{label}</p>
-            </div>
-          ))}
-        </div>
-        <div style={{ height:5, background:C.neutralDark, borderRadius:4, overflow:'hidden' }}>
-          <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${C.primary},${C.secondary})`, borderRadius:4, transition:'width 0.4s ease' }} />
-        </div>
-        <p style={{ margin:'6px 0 0', fontFamily:F.body, fontSize:11, color:C.textMuted, textAlign:'right' }}>{pct}% complete</p>
-      </div>
+      <ProgressCard showBreakdown />
+      <QuickLinks />
 
-      <div style={{ background:'white', borderRadius:14, border:`1px solid ${C.neutralDark}`,
-        padding:'14px 16px', display:'flex', flexDirection:'column', gap:10 }}>
-        <p style={{ margin:0, fontFamily:F.body, fontSize:10, fontWeight:800, letterSpacing:'0.14em', textTransform:'uppercase', color:C.secondaryDark }}>Points Breakdown</p>
-        {[{label:'Quiz points',value:quizPoints},{label:'Music listen',value:musicPoints-ciphers*15},{label:'Cipher bonuses',value:ciphers*15}]
-          .map(({label,value}) => (
-          <div key={label} style={{ display:'flex', justifyContent:'space-between' }}>
-            <span style={{ fontFamily:F.body, fontSize:13, color:C.textMuted }}>{label}</span>
-            <span style={{ fontFamily:F.body, fontSize:14, fontWeight:700, color:C.textDark }}>{value} pts</span>
-          </div>
-        ))}
-        <div style={{ height:1, background:C.neutralDark }} />
-        <div style={{ display:'flex', justifyContent:'space-between' }}>
-          <span style={{ fontFamily:F.body, fontSize:13, fontWeight:700, color:C.textDark }}>Total</span>
-          <span style={{ fontFamily:F.headline, fontSize:18, fontWeight:700, color:C.primary }}>{totalPoints} pts</span>
-        </div>
-      </div>
-
-      <button type="button" onClick={logout} style={{
-        width:'100%', padding:'13px 0', background:'transparent',
-        border:`2px solid ${C.neutralDark}`, borderRadius:14,
-        fontFamily:F.body, fontSize:13, fontWeight:600, color:C.textMuted, cursor:'pointer',
-      }}>Log Out</button>
+      <button type="button" className="profile-logout-btn" onClick={logout}>
+        Log Out
+      </button>
     </div>
   )
 }
 
-// ── Guest profile ─────────────────────────────────────────────────────────────
 function GuestProfile() {
   const { logout } = useAuth()
-  const visitedCount = getAllQuizResults().length
-  const totalPoints  = getTotalPointsEarned() + getTotalMusicPoints()
-  const ciphers      = getMusicCipherSolvedCount()
-  const pct          = Math.round((visitedCount / TOTAL_LOCATIONS) * 100)
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:18 }}>
-      <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-        <div style={{ width:60, height:60, borderRadius:'50%', background:C.neutralDark,
-          display:'flex', alignItems:'center', justifyContent:'center', fontSize:28, flexShrink:0 }}>👤</div>
-        <div>
-          <p style={{ margin:0, fontFamily:F.headline, fontSize:20, fontWeight:700, color:C.textDark }}>Browsing as Guest</p>
-          <p style={{ margin:'4px 0 0', fontFamily:F.body, fontSize:12, color:C.textMuted }}>Progress saved on this device</p>
+    <div className="profile-body">
+      <div className="profile-hero">
+        <div className="profile-avatar profile-avatar--guest">👤</div>
+        <div className="profile-hero-text">
+          <h2 className="profile-name">Browsing as Guest</h2>
+          <p className="profile-email">Progress is saved on this device</p>
         </div>
       </div>
 
-      <div style={{ background:'#FEFAF2', borderRadius:16, border:`1px solid ${C.neutralDark}`, padding:'16px 18px' }}>
-        <div style={{ display:'flex', marginBottom:14 }}>
-          {[{val:`${visitedCount}/${TOTAL_LOCATIONS}`,label:'Stops'},{val:totalPoints,label:'Points'},{val:ciphers,label:'Ciphers'}]
-            .map(({val,label},i) => (
-            <div key={label} style={{ flex:1, textAlign:'center',
-              borderRight: i<2 ? `1px solid ${C.neutralDark}` : 'none',
-              paddingRight: i<2 ? 8 : 0, paddingLeft: i>0 ? 8 : 0 }}>
-              <p style={{ margin:0, fontFamily:F.headline, fontSize:22, fontWeight:700, color:C.primary, lineHeight:1 }}>{val}</p>
-              <p style={{ margin:'4px 0 0', fontFamily:F.body, fontSize:10, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:C.textMuted }}>{label}</p>
-            </div>
-          ))}
-        </div>
-        <div style={{ height:5, background:C.neutralDark, borderRadius:4, overflow:'hidden' }}>
-          <div style={{ height:'100%', width:`${pct}%`, background:`linear-gradient(90deg,${C.primary},${C.secondary})`, borderRadius:4 }} />
-        </div>
-      </div>
+      <ProgressCard />
+      <QuickLinks />
 
-      <div style={{ padding:'16px 18px', background:'rgba(212,175,55,0.08)', borderRadius:14, border:`1px solid rgba(212,175,55,0.25)` }}>
-        <p style={{ margin:'0 0 6px', fontFamily:F.body, fontSize:12, fontWeight:700, color:C.secondaryDark }}>Want to save your name?</p>
-        <p style={{ margin:'0 0 12px', fontFamily:F.body, fontSize:13, lineHeight:1.55, color:C.textMuted }}>
-          Create a local account to personalise your profile. Your progress is already saved here.
+      <div className="profile-upgrade">
+        <p className="profile-upgrade-title">Save your name on the trail</p>
+        <p className="profile-upgrade-text">
+          Create a free local account to personalise your profile. Your quiz scores and treasures stay right here.
         </p>
-        <button type="button" onClick={logout} style={{
-          width:'100%', padding:'12px 0', background:C.primary, border:'none', borderRadius:12,
-          fontFamily:F.body, fontSize:12, fontWeight:800, letterSpacing:'0.06em', textTransform:'uppercase',
-          color:'white', cursor:'pointer', boxShadow:'0 4px 14px rgba(139,0,0,0.25)',
-        }}>Create Account</button>
+        <button type="button" className="profile-upgrade-btn" onClick={logout}>
+          Create Account
+        </button>
       </div>
     </div>
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────────
 export function ProfilePage() {
   const { user, isGuest, loading } = useAuth()
 
@@ -365,15 +310,29 @@ export function ProfilePage() {
   return (
     <div className="profile-page">
       <AppHeader />
-      <div className="profile-content">
-        <p style={{ margin:'0 0 6px', fontFamily:F.body, fontSize:10, fontWeight:800,
-          letterSpacing:'0.2em', textTransform:'uppercase', color:C.secondary }}>Account</p>
-        <h2 style={{ margin:'0 0 22px', fontFamily:F.headline, fontSize:28, fontWeight:700, lineHeight:1.15, color:C.textDark }}>Profile</h2>
-        {loading ? (
-          <p style={{ fontFamily:F.body, fontSize:14, color:C.textMuted }}>Loading…</p>
-        ) : user ? <UserProfile /> : <GuestProfile />}
+      <div className="profile-scroll">
+        <div className="profile-content">
+          <header className="profile-header">
+            <p className="profile-eyebrow">Account</p>
+            <h1 className="profile-title">Your Profile</h1>
+            <p className="profile-intro">
+              Track your progress, revisit treasures, and pick up where you left off.
+            </p>
+          </header>
+
+          {loading ? (
+            <p className="profile-loading">Loading…</p>
+          ) : user ? (
+            <UserProfile />
+          ) : (
+            <GuestProfile />
+          )}
+        </div>
+
+        <div className="profile-footer-wrap">
+          <AppFooter />
+        </div>
       </div>
-      <AppFooter />
       <BottomNav />
     </div>
   )
