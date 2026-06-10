@@ -103,13 +103,10 @@ body {
 
 /* Home page */
 .home-page {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
   background: #2c1810;
 }
 .home-main {
-  flex: 1;
+  min-height: calc(100dvh - 64px);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -241,6 +238,108 @@ body {
   color: rgba(255, 255, 255, 0.62);
 }
 
+/* App footer */
+.app-footer {
+  background: linear-gradient(180deg, #6b0000 0%, #4a0000 100%);
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+.app-footer-in-scroll {
+  margin: 48px -20px -28px;
+  width: calc(100% + 40px);
+}
+.app-footer-inner {
+  margin: 0 auto;
+  width: 100%;
+  padding: clamp(28px, 5vw, 40px) clamp(20px, 4vw, 32px);
+  display: grid;
+  gap: 28px;
+  box-sizing: border-box;
+}
+@media (min-width: 768px) {
+  .app-footer-inner {
+    grid-template-columns: 1.4fr 1fr 1fr;
+    align-items: start;
+    gap: 32px;
+  }
+}
+.app-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.app-footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  width: fit-content;
+  transition: opacity 0.15s ease;
+}
+.app-footer-logo:hover {
+  opacity: 0.88;
+}
+.app-footer-logo-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: linear-gradient(145deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.06) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.app-footer-tagline {
+  margin: 0;
+  max-width: 340px;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.58);
+}
+.app-footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app-footer-link {
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  width: fit-content;
+  transition: color 0.15s ease;
+}
+.app-footer-link:hover {
+  color: #d4af37;
+}
+.app-footer-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+@media (min-width: 768px) {
+  .app-footer-meta {
+    align-items: flex-end;
+    text-align: right;
+  }
+}
+.app-footer-location {
+  margin: 0;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(212, 175, 55, 0.75);
+}
+.app-footer-copy {
+  margin: 0;
+  font-family: "Manrope", Inter, system-ui, sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.42);
+}
 /* App header */
 .header-brand {
   transition: opacity 0.15s ease, transform 0.15s ease;
@@ -293,8 +392,27 @@ body {
   100% { transform: translate(-50%, -50%) scale(1.9);  opacity: 0; }
 }
 
+/* Profile page */
+.profile-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5dc;
+}
+.profile-content {
+  flex: 1;
+  padding: 20px 20px 28px;
+}
+
 /* Auth page — full-bg + floating glass card */
-.auth-page     { position: fixed; inset: 0; overflow: hidden; }
+.profile-auth-page {
+  background: #2c1810;
+}
+.auth-page {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+}
 .auth-bg       { position: absolute; inset: 0;
                  background-size: cover; background-position: center; }
 .auth-overlay  { position: absolute; inset: 0;
@@ -304,7 +422,7 @@ body {
                    rgba(4,0,0,0.50) 100%); }
 
 /* Centered layout — brand above, card below, all centered */
-.auth-layout   { position: relative; height: 100%; display: flex;
+.auth-layout   { position: relative; min-height: 100dvh; display: flex;
                  flex-direction: column; align-items: center;
                  justify-content: center; padding: 24px 20px; gap: 22px; }
 .auth-brand    { text-align: center; }

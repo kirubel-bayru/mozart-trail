@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
+import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
 import { getTreasureEntries } from '../data/treasures'
 import { getAllQuizResults, getTotalPointsEarned } from '../lib/quizProgress'
@@ -432,6 +433,10 @@ export function TreasuresPage() {
             You’ve collected every treasure. Magnificent!
           </p>
         )}
+
+        <div className="app-footer-in-scroll">
+          <AppFooter />
+        </div>
       </div>
 
       <BottomNav />

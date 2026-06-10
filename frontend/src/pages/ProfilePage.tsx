@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AppHeader } from '../components/AppHeader'
+import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
 import { localLogin, localRegister } from '../lib/authApi'
@@ -80,14 +81,15 @@ function AuthPage() {
   }
 
   return (
-    <div className="auth-page">
-      {/* Full-screen background image */}
-      <div className="auth-bg" style={{ backgroundImage: `url(${heroBg})` }} />
-      {/* Dark overlay */}
-      <div className="auth-overlay" />
+    <div className="profile-auth-page">
+      <div className="auth-page">
+        {/* Full-screen background image */}
+        <div className="auth-bg" style={{ backgroundImage: `url(${heroBg})` }} />
+        {/* Dark overlay */}
+        <div className="auth-overlay" />
 
-      {/* Content — centered vertically & horizontally */}
-      <div className="auth-layout">
+        {/* Content — centered vertically & horizontally */}
+        <div className="auth-layout">
 
         {/* Brand */}
         <div className="auth-brand">
@@ -215,7 +217,10 @@ function AuthPage() {
 
           </div>
         </div>
+        </div>
       </div>
+
+      <AppFooter />
     </div>
   )
 }
@@ -358,9 +363,9 @@ export function ProfilePage() {
   if (!loading && !user && !isGuest) return <AuthPage />
 
   return (
-    <div style={{ height:'100dvh', display:'flex', flexDirection:'column', background:C.neutral, overflow:'hidden' }}>
+    <div className="profile-page">
       <AppHeader />
-      <div style={{ flex:1, overflowY:'auto', padding:'20px 20px 28px' }}>
+      <div className="profile-content">
         <p style={{ margin:'0 0 6px', fontFamily:F.body, fontSize:10, fontWeight:800,
           letterSpacing:'0.2em', textTransform:'uppercase', color:C.secondary }}>Account</p>
         <h2 style={{ margin:'0 0 22px', fontFamily:F.headline, fontSize:28, fontWeight:700, lineHeight:1.15, color:C.textDark }}>Profile</h2>
@@ -368,6 +373,7 @@ export function ProfilePage() {
           <p style={{ fontFamily:F.body, fontSize:14, color:C.textMuted }}>Loading…</p>
         ) : user ? <UserProfile /> : <GuestProfile />}
       </div>
+      <AppFooter />
       <BottomNav />
     </div>
   )

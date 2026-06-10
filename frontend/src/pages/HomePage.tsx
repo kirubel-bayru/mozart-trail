@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
+import { AppFooter } from '../components/AppFooter'
 import { TOTAL_LOCATIONS } from '../data/locations'
 import heroBg from '../assets/salzburg-bg.png'
 
@@ -77,6 +78,8 @@ export function HomePage() {
           </div>
         </div>
       </main>
+
+      <AppFooter />
     </div>
   )
 }
