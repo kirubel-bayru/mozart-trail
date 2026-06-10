@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { C, F } from '../theme'
 import type { MozartLocation } from '../data/locations'
 import { formatDistance } from '../lib/geo'
 import { formatDuration, MAX_WALKABLE_M } from '../lib/ors'
@@ -17,20 +16,28 @@ interface LocationInfoCardProps {
   onViewStory: () => void
 }
 
-function ClockIcon() {
+function CloseIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="9" stroke={C.secondary} strokeWidth="2"/>
-      <path d="M12 7v5l3 3" stroke={C.secondary} strokeWidth="2" strokeLinecap="round"/>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
     </svg>
   )
 }
 
 function WalkIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="4" r="2" fill={C.tertiaryLight}/>
-      <path d="M9 22l1.5-6L8 13l2-5h4l2 5-2.5 3L15 22" stroke={C.tertiaryLight} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="4" r="2" fill="currentColor" />
+      <path d="M9 22l1.5-6L8 13l2-5h4l2 5-2.5 3L15 22" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function ClockIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+      <path d="M12 7v5l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
@@ -49,105 +56,94 @@ export function LocationInfoCard({
   const todaySchedule = location.openingHours.schedule.split('·')[0].trim()
   const isTooFar = straightLineM !== null && straightLineM > MAX_WALKABLE_M && !route
 
-  return (
-    <div style={{
-      position: 'absolute',
-      bottom: 16, left: 16, right: 16,
-      zIndex: 900,
-      background: 'white',
-      borderRadius: 18,
-      padding: '16px 18px',
-      boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-      border: `1px solid ${C.neutralDark}`,
-    }}>
-      {/* Close */}
-      <button onClick={onClose} style={{
-        position: 'absolute', top: 12, right: 14,
-        background: 'none', border: 'none', cursor: 'pointer',
-        fontSize: 20, color: C.textMuted, lineHeight: 1,
-      }}>×</button>
+  const distanceLabel = route
+    ? `${formatDistance(route.distanceM)} · ${formatDuration(route.durationSec)}`
+    : straightLineM !== null
+      ? `~${formatDistance(straightLineM)} away`
+      : null
 
-      {/* Header */}
-      <div style={{ marginBottom: 10 }}>
-        <p style={{ margin: '0 0 2px', fontFamily: F.body, fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.secondaryDark }}>
-          Stop {location.order} · {location.category}
-        </p>
-        <Link to={`/location/${location.id}`} style={{ textDecoration: 'none' }}>
-          <h3 style={{ margin: 0, fontFamily: F.headline, fontSize: 18, fontWeight: 700, color: C.primary, paddingRight: 24 }}>
-            {location.name} ›
-          </h3>
-        </Link>
+  return (
+    <div className="location-popup" role="dialog" aria-label={location.name}>
+      <div className="location-popup-accent" aria-hidden />
+
+      <div className="location-popup-top">
+        <div className="location-popup-badges">
+          <span className="location-popup-stop">Stop {location.order}</span>
+          {location.unlocked ? (
+            <span className="location-popup-status location-popup-status--unlocked">Unlocked</span>
+          ) : (
+            <span className="location-popup-status">Locked</span>
+          )}
+        </div>
+        <button type="button" onClick={onClose} className="location-popup-close" aria-label="Close">
+          <CloseIcon />
+        </button>
       </div>
 
-      {/* Info row */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 12, flexWrap: 'wrap' }}>
-        {straightLineM !== null && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <WalkIcon />
-            <span style={{ fontFamily: F.body, fontSize: 12, color: C.textMuted }}>
-              {route ? `${formatDistance(route.distanceM)} · ${formatDuration(route.durationSec)} walk` : `~${formatDistance(straightLineM)} away`}
+      <div className="location-popup-body">
+        <p className="location-popup-category">{location.category}</p>
+        <Link to={`/location/${location.id}`} className="location-popup-title">
+          {location.name}
+        </Link>
+        {location.subtitle && (
+          <p className="location-popup-subtitle">{location.subtitle}</p>
+        )}
+
+        <div className="location-popup-meta">
+          {distanceLabel && (
+            <span className="location-popup-chip">
+              <WalkIcon />
+              {distanceLabel}
             </span>
+          )}
+          <span className="location-popup-chip">
+            <ClockIcon />
+            {todaySchedule}
+          </span>
+          <span className="location-popup-chip location-popup-chip--points">
+            +{location.points} pts
+          </span>
+        </div>
+
+        {location.openingHours.admission && (
+          <p className="location-popup-admission">{location.openingHours.admission}</p>
+        )}
+
+        {isTooFar ? (
+          <div className="location-popup-notice">
+            <p>
+              {formatDistance(straightLineM!)} away — plan the full trail instead.
+            </p>
+            <div className="location-popup-actions">
+              <button type="button" onClick={onShowTrail} className="location-popup-btn location-popup-btn--gold">
+                Show Full Trail
+              </button>
+              <button type="button" onClick={onViewStory} className="location-popup-btn location-popup-btn--primary">
+                View Story
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="location-popup-actions-wrap">
+            {usingFallbackPos && !route && (
+              <p className="location-popup-hint">No GPS — route from city centre</p>
+            )}
+            <div className="location-popup-actions">
+              <button
+                type="button"
+                onClick={onShowRoute}
+                disabled={isLoadingRoute}
+                className="location-popup-btn location-popup-btn--outline"
+              >
+                {isLoadingRoute ? 'Loading route…' : route ? 'Update Route' : 'Walking Route'}
+              </button>
+              <button type="button" onClick={onViewStory} className="location-popup-btn location-popup-btn--primary">
+                View Story
+              </button>
+            </div>
           </div>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-          <ClockIcon />
-          <span style={{ fontFamily: F.body, fontSize: 12, color: C.textMuted }}>{todaySchedule}</span>
-        </div>
       </div>
-
-      {/* Admission */}
-      {location.openingHours.admission && (
-        <div style={{
-          background: 'rgba(212,175,55,0.08)', border: '1px solid rgba(212,175,55,0.2)',
-          borderRadius: 8, padding: '6px 10px', marginBottom: 12,
-          fontFamily: F.body, fontSize: 12, color: C.secondaryDark,
-        }}>
-          🎫 {location.openingHours.admission}
-        </div>
-      )}
-
-      {/* Route section */}
-      {isTooFar ? (
-        <div style={{ marginBottom: 10, padding: '10px 12px', background: `rgba(93,64,55,0.07)`, border: `1px solid rgba(93,64,55,0.15)`, borderRadius: 10 }}>
-          <p style={{ margin: '0 0 8px', fontFamily: F.body, fontSize: 12, color: C.textMuted, lineHeight: 1.5 }}>
-            📍 {formatDistance(straightLineM!)} away — plan the full trail instead:
-          </p>
-          <button onClick={onShowTrail} style={{
-            width: '100%', padding: '9px 0', background: C.secondary,
-            border: 'none', borderRadius: 9, fontFamily: F.body,
-            fontSize: 12, fontWeight: 700, color: C.textDark, cursor: 'pointer',
-          }}>
-            🗺️ Show Full Mozart Trail
-          </button>
-        </div>
-      ) : (
-        <div style={{ marginBottom: 10 }}>
-          {usingFallbackPos && !route && (
-            <p style={{ margin: '0 0 8px', fontFamily: F.body, fontSize: 11, color: C.textMuted, fontStyle: 'italic' }}>
-              No GPS — route starts from Salzburg city centre
-            </p>
-          )}
-          <button onClick={onShowRoute} disabled={isLoadingRoute} style={{
-            width: '100%', padding: '10px 0',
-            background: isLoadingRoute ? '#ccc' : route ? C.primaryDark : C.tertiary,
-            border: 'none', borderRadius: 10, fontFamily: F.body,
-            fontSize: 13, fontWeight: 700, color: 'white',
-            cursor: isLoadingRoute ? 'default' : 'pointer',
-          }}>
-            {isLoadingRoute ? '⏳ Loading route…' : route ? '🗺️ Update Route' : '🧭 Show Walking Route'}
-          </button>
-        </div>
-      )}
-
-      {/* View Story — always visible */}
-      <button onClick={onViewStory} style={{
-        width: '100%', padding: '11px 0',
-        background: C.primary, border: 'none', borderRadius: 10,
-        fontFamily: F.body, fontSize: 13, fontWeight: 700, color: 'white',
-        cursor: 'pointer', boxShadow: '0 3px 10px rgba(139,0,0,0.3)',
-      }}>
-        📖 View Story
-      </button>
     </div>
   )
 }
