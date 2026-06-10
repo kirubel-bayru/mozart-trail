@@ -61,8 +61,8 @@ function AuthPage() {
   return (
     <div className="profile-auth-page">
       <div className="auth-page">
-        <div className="auth-bg" style={{ backgroundImage: `url(${heroBg})` }} />
-        <div className="auth-overlay" />
+        <div className="home-bg" style={{ backgroundImage: `url(${heroBg})` }} />
+        <div className="home-overlay" />
 
         <div className="auth-layout">
           <div className="auth-brand">
