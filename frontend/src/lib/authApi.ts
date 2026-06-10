@@ -1,95 +1,105 @@
-/**
- * Local-only auth — all user data lives in localStorage.
- * No backend or database required.
- */
-
-const USERS_KEY = 'mozart-users'
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:4000'
 const SESSION_KEY = 'mozart-session'
 
 export interface AuthUser {
-  id: string
+  id: number
   email: string
   displayName: string
-  createdAt: string
+  createdAt?: string
 }
 
-interface StoredUser extends AuthUser {
-  passwordHash: string
+export interface AuthSession {
+  token: string
+  user: AuthUser
 }
 
-// Simple non-cryptographic hash (good enough for local storage demo)
-function hashPassword(password: string): string {
-  let h = 5381
-  for (let i = 0; i < password.length; i++) {
-    h = ((h << 5) + h) ^ password.charCodeAt(i)
+interface AuthResponse {
+  token: string
+  user: {
+    id: number
+    email: string
+    displayName: string
+    createdAt?: string
   }
-  return (h >>> 0).toString(16)
 }
 
-function readUsers(): StoredUser[] {
+async function parseError(res: Response): Promise<string> {
   try {
-    const raw = localStorage.getItem(USERS_KEY)
-    return raw ? (JSON.parse(raw) as StoredUser[]) : []
+    const data = (await res.json()) as { error?: string }
+    return data.error ?? `Request failed (${res.status})`
   } catch {
-    return []
+    return `Request failed (${res.status})`
   }
 }
 
-function writeUsers(users: StoredUser[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users))
+function toSession(data: AuthResponse): AuthSession {
+  return {
+    token: data.token,
+    user: {
+      id: data.user.id,
+      email: data.user.email,
+      displayName: data.user.displayName,
+      createdAt: data.user.createdAt,
+    },
+  }
 }
 
-export function localRegister(
+export async function register(
   email: string,
   displayName: string,
   password: string,
-): AuthUser {
-  const users = readUsers()
-  const normalizedEmail = email.toLowerCase().trim()
-
-  if (users.find((u) => u.email === normalizedEmail)) {
-    throw new Error('An account with this email already exists')
-  }
-  if (password.length < 6) {
-    throw new Error('Password must be at least 6 characters')
-  }
-
-  const user: StoredUser = {
-    id: `user-${Date.now()}`,
-    email: normalizedEmail,
-    displayName: displayName.trim(),
-    createdAt: new Date().toISOString(),
-    passwordHash: hashPassword(password),
-  }
-  writeUsers([...users, user])
-
-  const { passwordHash: _, ...publicUser } = user
-  return publicUser
+): Promise<AuthSession> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, displayName, password }),
+  })
+  if (!res.ok) throw new Error(await parseError(res))
+  return toSession((await res.json()) as AuthResponse)
 }
 
-export function localLogin(email: string, password: string): AuthUser {
-  const users = readUsers()
-  const user = users.find((u) => u.email === email.toLowerCase().trim())
+export async function login(email: string, password: string): Promise<AuthSession> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  if (!res.ok) throw new Error(await parseError(res))
+  return toSession((await res.json()) as AuthResponse)
+}
 
-  if (!user || user.passwordHash !== hashPassword(password)) {
-    throw new Error('Invalid email or password')
+export async function fetchMe(token: string): Promise<AuthUser> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error(await parseError(res))
+  const data = (await res.json()) as AuthUser
+  return {
+    id: data.id,
+    email: data.email,
+    displayName: data.displayName,
+    createdAt: data.createdAt,
   }
-
-  const { passwordHash: _, ...publicUser } = user
-  return publicUser
 }
 
-export function saveSession(user: AuthUser) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify(user))
+export function saveSession(session: AuthSession) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
 }
 
-export function loadSession(): AuthUser | null {
+export function loadSession(): AuthSession | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY)
-    return raw ? (JSON.parse(raw) as AuthUser) : null
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as AuthSession
+    if (!parsed?.token || !parsed?.user?.id) return null
+    return parsed
   } catch {
     return null
   }
+}
+
+export function getToken(): string | null {
+  return loadSession()?.token ?? null
 }
 
 export function clearSession() {

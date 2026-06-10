@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
 import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
 import { useAuth } from '../context/AuthContext'
-import { localLogin, localRegister } from '../lib/authApi'
-import { getAllQuizResults, getTotalPointsEarned } from '../lib/quizProgress'
-import { getMusicCipherSolvedCount, getTotalMusicPoints } from '../lib/musicProgress'
+import { useProgress } from '../context/ProgressContext'
+import { login, register } from '../lib/authApi'
+import { CIPHER_BONUS_POINTS } from '../lib/musicHelpers'
 import { LOCATIONS, TOTAL_LOCATIONS } from '../data/locations'
 import heroBg from '../assets/salzburg-bg.png'
 
@@ -31,7 +31,8 @@ function GlassInput({ label, type, value, onChange, placeholder }: {
 }
 
 function AuthPage() {
-  const { setAuth, enterGuestMode } = useAuth()
+  const navigate = useNavigate()
+  const { setAuth } = useAuth()
   const [tab, setTab] = useState<Tab>('login')
   const [email, setEmail] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -41,16 +42,17 @@ function AuthPage() {
 
   const reset = () => { setEmail(''); setDisplayName(''); setPassword(''); setError(null) }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError(null)
     if (!email.trim() || !password.trim()) { setError('Please fill in all fields'); return }
     if (tab === 'register' && !displayName.trim()) { setError('Please enter your name'); return }
     setLoading(true)
     try {
-      const user = tab === 'register'
-        ? localRegister(email.trim(), displayName.trim(), password)
-        : localLogin(email.trim(), password)
-      setAuth(user)
+      const session = tab === 'register'
+        ? await register(email.trim(), displayName.trim(), password)
+        : await login(email.trim(), password)
+      await setAuth(session)
+      navigate('/hunt')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -68,7 +70,7 @@ function AuthPage() {
           <div className="auth-brand">
             <p className="auth-brand-eyebrow">Mozart's Trail</p>
             <h1 className="auth-brand-title">Discover Salzburg</h1>
-            <p className="auth-brand-sub">Sign in to personalise your trail, or continue as a guest.</p>
+            <p className="auth-brand-sub">Sign in to save your progress and explore the trail.</p>
           </div>
 
           <div className="auth-card-wrap">
@@ -109,14 +111,6 @@ function AuthPage() {
                 {loading ? 'Please wait…' : tab === 'login' ? 'Sign In' : 'Create Account'}
               </button>
 
-              <div className="auth-divider">
-                <span>or</span>
-              </div>
-
-              <button type="button" className="auth-guest-btn" onClick={enterGuestMode}>
-                Continue as Guest
-              </button>
-
               <p className="auth-switch">
                 {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
                 <button
@@ -140,21 +134,27 @@ function AuthPage() {
 }
 
 function useTrailStats() {
-  const visitedIds = new Set(getAllQuizResults().map((r) => r.locationId))
+  const {
+    quizResults,
+    treasures,
+    totalQuizPoints: quizPoints,
+    totalMusicPoints: musicPoints,
+    cipherSolvedCount: ciphers,
+  } = useProgress()
+
+  const visitedIds = new Set(quizResults.map((r) => r.locationId))
   const visitedCount = visitedIds.size
-  const quizPoints = getTotalPointsEarned()
-  const musicPoints = getTotalMusicPoints()
-  const ciphers = getMusicCipherSolvedCount()
+  const treasureCount = treasures.length
   const totalPoints = quizPoints + musicPoints
   const pct = Math.round((visitedCount / TOTAL_LOCATIONS) * 100)
   const nextStop = LOCATIONS.find((loc) => !visitedIds.has(loc.id)) ?? null
 
-  return { visitedCount, quizPoints, musicPoints, ciphers, totalPoints, pct, nextStop }
+  return { visitedCount, treasureCount, quizPoints, musicPoints, ciphers, totalPoints, pct, nextStop }
 }
 
 function ProgressCard({ showBreakdown }: { showBreakdown?: boolean }) {
-  const { visitedCount, quizPoints, musicPoints, ciphers, totalPoints, pct } = useTrailStats()
-  const listenPoints = musicPoints - ciphers * 15
+  const { visitedCount, treasureCount, quizPoints, musicPoints, ciphers, totalPoints, pct } = useTrailStats()
+  const listenPoints = musicPoints - ciphers * CIPHER_BONUS_POINTS
 
   return (
     <div className="profile-card profile-card--progress">
@@ -169,7 +169,7 @@ function ProgressCard({ showBreakdown }: { showBreakdown?: boolean }) {
           <span className="profile-stat-label">Points</span>
         </div>
         <div className="profile-stat">
-          <span className="profile-stat-value">{visitedCount}</span>
+          <span className="profile-stat-value">{treasureCount}</span>
           <span className="profile-stat-label">Treasures</span>
         </div>
         <div className="profile-stat">
@@ -194,7 +194,7 @@ function ProgressCard({ showBreakdown }: { showBreakdown?: boolean }) {
           </div>
           <div className="profile-breakdown-row">
             <span>Cipher bonuses</span>
-            <span>{ciphers * 15} pts</span>
+            <span>{ciphers * CIPHER_BONUS_POINTS} pts</span>
           </div>
           <div className="profile-breakdown-total">
             <span>Total</span>
@@ -273,39 +273,10 @@ function UserProfile() {
   )
 }
 
-function GuestProfile() {
-  const { logout } = useAuth()
-
-  return (
-    <div className="profile-body">
-      <div className="profile-hero">
-        <div className="profile-avatar profile-avatar--guest">👤</div>
-        <div className="profile-hero-text">
-          <h2 className="profile-name">Browsing as Guest</h2>
-          <p className="profile-email">Progress is saved on this device</p>
-        </div>
-      </div>
-
-      <ProgressCard />
-      <QuickLinks />
-
-      <div className="profile-upgrade">
-        <p className="profile-upgrade-title">Save your name on the trail</p>
-        <p className="profile-upgrade-text">
-          Create a free local account to personalise your profile. Your quiz scores and treasures stay right here.
-        </p>
-        <button type="button" className="profile-upgrade-btn" onClick={logout}>
-          Create Account
-        </button>
-      </div>
-    </div>
-  )
-}
-
 export function ProfilePage() {
-  const { user, isGuest, loading } = useAuth()
+  const { user, loading } = useAuth()
 
-  if (!loading && !user && !isGuest) return <AuthPage />
+  if (!loading && !user) return <AuthPage />
 
   return (
     <div className="profile-page">
@@ -322,10 +293,8 @@ export function ProfilePage() {
 
           {loading ? (
             <p className="profile-loading">Loading…</p>
-          ) : user ? (
-            <UserProfile />
           ) : (
-            <GuestProfile />
+            <UserProfile />
           )}
         </div>
 

@@ -42,6 +42,89 @@ async function migrate() {
       UNIQUE(user_id, location_id)
     )
   `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS quiz_results (
+      id            SERIAL PRIMARY KEY,
+      user_id       INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      location_id   TEXT NOT NULL,
+      correct       INTEGER NOT NULL,
+      total         INTEGER NOT NULL,
+      points_earned INTEGER NOT NULL,
+      completed_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, location_id)
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_treasures (
+      id           SERIAL PRIMARY KEY,
+      user_id      INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      location_id  TEXT NOT NULL,
+      collected_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, location_id)
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS music_progress (
+      id              SERIAL PRIMARY KEY,
+      user_id         INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      location_id     TEXT NOT NULL,
+      listened_sec    REAL DEFAULT 0,
+      listen_complete BOOLEAN DEFAULT FALSE,
+      cipher_solved   BOOLEAN DEFAULT FALSE,
+      listen_points   INTEGER DEFAULT 0,
+      cipher_points   INTEGER DEFAULT 0,
+      updated_at      TIMESTAMPTZ DEFAULT NOW(),
+      UNIQUE(user_id, location_id)
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS location_unlocks (
+      id          SERIAL PRIMARY KEY,
+      user_id     INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      location_id TEXT NOT NULL,
+      unlocked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE(user_id, location_id)
+    )
+  `)
+
+  await pool.query(`
+    ALTER TABLE user_progress
+    ADD COLUMN IF NOT EXISTS location_unlocked BOOLEAN DEFAULT FALSE
+  `)
+
+  await pool.query(`
+    INSERT INTO quiz_results (user_id, location_id, correct, total, points_earned, completed_at)
+    SELECT user_id, location_id, quiz_correct, quiz_total, quiz_points, quiz_completed_at
+    FROM user_progress
+    WHERE quiz_completed_at IS NOT NULL
+    ON CONFLICT (user_id, location_id) DO NOTHING
+  `)
+  await pool.query(`
+    INSERT INTO user_treasures (user_id, location_id, collected_at)
+    SELECT user_id, location_id, quiz_completed_at
+    FROM user_progress
+    WHERE quiz_completed_at IS NOT NULL
+    ON CONFLICT (user_id, location_id) DO NOTHING
+  `)
+  await pool.query(`
+    INSERT INTO music_progress (
+      user_id, location_id, listened_sec, listen_complete, cipher_solved,
+      listen_points, cipher_points, updated_at
+    )
+    SELECT user_id, location_id, music_listened_sec, music_listen_complete, music_cipher_solved,
+           music_listen_points, music_cipher_points, updated_at
+    FROM user_progress
+    WHERE music_listen_complete OR music_cipher_solved OR music_listened_sec > 0
+    ON CONFLICT (user_id, location_id) DO NOTHING
+  `)
+  await pool.query(`
+    INSERT INTO location_unlocks (user_id, location_id, unlocked_at)
+    SELECT user_id, location_id, updated_at
+    FROM user_progress
+    WHERE location_unlocked = TRUE
+    ON CONFLICT (user_id, location_id) DO NOTHING
+  `)
+
   console.log('Database migration complete')
 }
 

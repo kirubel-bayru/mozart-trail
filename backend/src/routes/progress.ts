@@ -6,7 +6,7 @@ const router = Router()
 
 router.use(requireAuth)
 
-interface QuizResult {
+interface QuizResultRow {
   locationId: string
   correct: number
   total: number
@@ -14,7 +14,12 @@ interface QuizResult {
   completedAt: string
 }
 
-interface MusicProgress {
+interface UserTreasureRow {
+  locationId: string
+  collectedAt: string
+}
+
+interface MusicProgressRow {
   locationId: string
   listenedSec: number
   listenComplete: boolean
@@ -24,133 +29,188 @@ interface MusicProgress {
   updatedAt: string
 }
 
-// GET /api/progress — load saved progress for logged-in user
+async function fetchUserProgress(userId: number) {
+  const [quizRes, treasureRes, musicRes, unlockRes] = await Promise.all([
+    pool.query(
+      `SELECT location_id, correct, total, points_earned, completed_at
+       FROM quiz_results WHERE user_id = $1 ORDER BY completed_at`,
+      [userId],
+    ),
+    pool.query(
+      `SELECT location_id, collected_at FROM user_treasures WHERE user_id = $1 ORDER BY collected_at`,
+      [userId],
+    ),
+    pool.query(
+      `SELECT location_id, listened_sec, listen_complete, cipher_solved,
+              listen_points, cipher_points, updated_at
+       FROM music_progress WHERE user_id = $1`,
+      [userId],
+    ),
+    pool.query(
+      `SELECT location_id FROM location_unlocks WHERE user_id = $1`,
+      [userId],
+    ),
+  ])
+
+  const quizResults: QuizResultRow[] = quizRes.rows.map((row) => ({
+    locationId: row.location_id as string,
+    correct: row.correct as number,
+    total: row.total as number,
+    pointsEarned: row.points_earned as number,
+    completedAt: row.completed_at as string,
+  }))
+
+  const treasures: UserTreasureRow[] = treasureRes.rows.map((row) => ({
+    locationId: row.location_id as string,
+    collectedAt: row.collected_at as string,
+  }))
+
+  const musicProgress: MusicProgressRow[] = musicRes.rows.map((row) => ({
+    locationId: row.location_id as string,
+    listenedSec: Number(row.listened_sec),
+    listenComplete: row.listen_complete as boolean,
+    cipherSolved: row.cipher_solved as boolean,
+    listenPoints: row.listen_points as number,
+    cipherPoints: row.cipher_points as number,
+    updatedAt: row.updated_at as string,
+  }))
+
+  const unlockedLocationIds = unlockRes.rows.map((row) => row.location_id as string)
+
+  return { quizResults, treasures, musicProgress, unlockedLocationIds }
+}
+
 router.get('/', async (req: AuthRequest, res) => {
   try {
-    const result = await pool.query(
-      'SELECT * FROM user_progress WHERE user_id = $1',
-      [req.user!.userId],
-    )
-
-    const quizResults: QuizResult[] = []
-    const musicProgress: MusicProgress[] = []
-
-    for (const row of result.rows) {
-      if (row.quiz_completed_at) {
-        quizResults.push({
-          locationId: row.location_id,
-          correct: row.quiz_correct,
-          total: row.quiz_total,
-          pointsEarned: row.quiz_points,
-          completedAt: row.quiz_completed_at,
-        })
-      }
-      if (row.music_listen_complete || row.music_cipher_solved || row.music_listened_sec > 0) {
-        musicProgress.push({
-          locationId: row.location_id,
-          listenedSec: row.music_listened_sec,
-          listenComplete: row.music_listen_complete,
-          cipherSolved: row.music_cipher_solved,
-          listenPoints: row.music_listen_points,
-          cipherPoints: row.music_cipher_points,
-          updatedAt: row.updated_at,
-        })
-      }
-    }
-
-    res.json({ quizResults, musicProgress })
+    const data = await fetchUserProgress(req.user!.userId)
+    res.json(data)
   } catch (err) {
     console.error('Progress load error:', err)
     res.status(500).json({ error: 'Failed to load progress' })
   }
 })
 
-// POST /api/progress/sync — upsert local progress to backend
-router.post('/sync', async (req: AuthRequest, res) => {
-  const { quizResults, musicProgress } = req.body as {
-    quizResults?: QuizResult[]
-    musicProgress?: MusicProgress[]
+router.post('/quiz', async (req: AuthRequest, res) => {
+  const { locationId, correct, total, pointsEarned, completedAt } = req.body as {
+    locationId?: string
+    correct?: number
+    total?: number
+    pointsEarned?: number
+    completedAt?: string
+  }
+
+  if (!locationId || correct == null || total == null || pointsEarned == null) {
+    res.status(400).json({ error: 'locationId, correct, total, and pointsEarned are required' })
+    return
+  }
+
+  const userId = req.user!.userId
+  const completed = completedAt ?? new Date().toISOString()
+
+  try {
+    await pool.query('BEGIN')
+
+    await pool.query(
+      `INSERT INTO quiz_results (user_id, location_id, correct, total, points_earned, completed_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       ON CONFLICT (user_id, location_id) DO UPDATE SET
+         correct = EXCLUDED.correct,
+         total = EXCLUDED.total,
+         points_earned = GREATEST(EXCLUDED.points_earned, quiz_results.points_earned),
+         completed_at = EXCLUDED.completed_at`,
+      [userId, locationId, correct, total, pointsEarned, completed],
+    )
+
+    await pool.query(
+      `INSERT INTO user_treasures (user_id, location_id, collected_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, location_id) DO UPDATE SET
+         collected_at = EXCLUDED.collected_at`,
+      [userId, locationId, completed],
+    )
+
+    await pool.query(
+      `INSERT INTO location_unlocks (user_id, location_id, unlocked_at)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, location_id) DO NOTHING`,
+      [userId, locationId, completed],
+    )
+
+    await pool.query('COMMIT')
+
+    const data = await fetchUserProgress(userId)
+    res.json({ ok: true, ...data })
+  } catch (err) {
+    await pool.query('ROLLBACK')
+    console.error('Quiz save error:', err)
+    res.status(500).json({ error: 'Failed to save quiz result' })
+  }
+})
+
+router.post('/music', async (req: AuthRequest, res) => {
+  const body = req.body as MusicProgressRow
+  if (!body.locationId) {
+    res.status(400).json({ error: 'locationId is required' })
+    return
   }
 
   const userId = req.user!.userId
 
   try {
-    const allLocationIds = new Set([
-      ...(quizResults ?? []).map((r) => r.locationId),
-      ...(musicProgress ?? []).map((m) => m.locationId),
-    ])
+    await pool.query(
+      `INSERT INTO music_progress (
+        user_id, location_id, listened_sec, listen_complete, cipher_solved,
+        listen_points, cipher_points, updated_at
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      ON CONFLICT (user_id, location_id) DO UPDATE SET
+        listened_sec = GREATEST(EXCLUDED.listened_sec, music_progress.listened_sec),
+        listen_complete = (EXCLUDED.listen_complete OR music_progress.listen_complete),
+        cipher_solved = (EXCLUDED.cipher_solved OR music_progress.cipher_solved),
+        listen_points = GREATEST(EXCLUDED.listen_points, music_progress.listen_points),
+        cipher_points = GREATEST(EXCLUDED.cipher_points, music_progress.cipher_points),
+        updated_at = EXCLUDED.updated_at`,
+      [
+        userId,
+        body.locationId,
+        body.listenedSec ?? 0,
+        body.listenComplete ?? false,
+        body.cipherSolved ?? false,
+        body.listenPoints ?? 0,
+        body.cipherPoints ?? 0,
+        body.updatedAt ?? new Date().toISOString(),
+      ],
+    )
 
-    for (const locationId of allLocationIds) {
-      const quiz = quizResults?.find((r) => r.locationId === locationId)
-      const music = musicProgress?.find((m) => m.locationId === locationId)
-
-      await pool.query(
-        `INSERT INTO user_progress (
-          user_id, location_id,
-          quiz_correct, quiz_total, quiz_points, quiz_completed_at,
-          music_listened_sec, music_listen_complete, music_cipher_solved,
-          music_listen_points, music_cipher_points,
-          updated_at
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
-        ON CONFLICT (user_id, location_id) DO UPDATE SET
-          quiz_correct = COALESCE(EXCLUDED.quiz_correct, user_progress.quiz_correct),
-          quiz_total = COALESCE(EXCLUDED.quiz_total, user_progress.quiz_total),
-          quiz_points = COALESCE(EXCLUDED.quiz_points, user_progress.quiz_points),
-          quiz_completed_at = COALESCE(EXCLUDED.quiz_completed_at, user_progress.quiz_completed_at),
-          music_listened_sec = GREATEST(EXCLUDED.music_listened_sec, user_progress.music_listened_sec),
-          music_listen_complete = (EXCLUDED.music_listen_complete OR user_progress.music_listen_complete),
-          music_cipher_solved = (EXCLUDED.music_cipher_solved OR user_progress.music_cipher_solved),
-          music_listen_points = GREATEST(EXCLUDED.music_listen_points, user_progress.music_listen_points),
-          music_cipher_points = GREATEST(EXCLUDED.music_cipher_points, user_progress.music_cipher_points),
-          updated_at = NOW()`,
-        [
-          userId,
-          locationId,
-          quiz?.correct ?? null,
-          quiz?.total ?? null,
-          quiz?.pointsEarned ?? null,
-          quiz?.completedAt ?? null,
-          music?.listenedSec ?? 0,
-          music?.listenComplete ?? false,
-          music?.cipherSolved ?? false,
-          music?.listenPoints ?? 0,
-          music?.cipherPoints ?? 0,
-        ],
-      )
-    }
-
-    // Return merged progress from DB
-    const result = await pool.query('SELECT * FROM user_progress WHERE user_id = $1', [userId])
-    const mergedQuiz: QuizResult[] = []
-    const mergedMusic: MusicProgress[] = []
-
-    for (const row of result.rows) {
-      if (row.quiz_completed_at) {
-        mergedQuiz.push({
-          locationId: row.location_id,
-          correct: row.quiz_correct,
-          total: row.quiz_total,
-          pointsEarned: row.quiz_points,
-          completedAt: row.quiz_completed_at,
-        })
-      }
-      if (row.music_listen_complete || row.music_cipher_solved || row.music_listened_sec > 0) {
-        mergedMusic.push({
-          locationId: row.location_id,
-          listenedSec: row.music_listened_sec,
-          listenComplete: row.music_listen_complete,
-          cipherSolved: row.music_cipher_solved,
-          listenPoints: row.music_listen_points,
-          cipherPoints: row.music_cipher_points,
-          updatedAt: row.updated_at,
-        })
-      }
-    }
-
-    res.json({ ok: true, quizResults: mergedQuiz, musicProgress: mergedMusic })
+    const data = await fetchUserProgress(userId)
+    res.json({ ok: true, ...data })
   } catch (err) {
-    console.error('Progress sync error:', err)
-    res.status(500).json({ error: 'Failed to sync progress' })
+    console.error('Music save error:', err)
+    res.status(500).json({ error: 'Failed to save music progress' })
+  }
+})
+
+router.post('/unlock', async (req: AuthRequest, res) => {
+  const { locationId } = req.body as { locationId?: string }
+  if (!locationId) {
+    res.status(400).json({ error: 'locationId is required' })
+    return
+  }
+
+  const userId = req.user!.userId
+
+  try {
+    await pool.query(
+      `INSERT INTO location_unlocks (user_id, location_id, unlocked_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT (user_id, location_id) DO NOTHING`,
+      [userId, locationId],
+    )
+
+    const data = await fetchUserProgress(userId)
+    res.json({ ok: true, ...data })
+  } catch (err) {
+    console.error('Unlock save error:', err)
+    res.status(500).json({ error: 'Failed to save unlock' })
   }
 })
 

@@ -3,8 +3,7 @@ import { AppHeader } from '../components/AppHeader'
 import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
 import { LOCATIONS, TOTAL_LOCATIONS } from '../data/locations'
-import { getAllQuizResults, getTotalPointsEarned } from '../lib/quizProgress'
-import { getAllMusicProgress, getMusicCipherSolvedCount, getTotalMusicPoints } from '../lib/musicProgress'
+import { useProgress } from '../context/ProgressContext'
 
 function StatCard({ value, label, sub }: { value: string | number; label: string; sub?: string }) {
   return (
@@ -97,14 +96,19 @@ function StopRow({
 }
 
 export function JourneyPage() {
-  const quizResultMap = new Map(getAllQuizResults().map((r) => [r.locationId, r]))
-  const musicMap = new Map(getAllMusicProgress().map((m) => [m.locationId, m]))
+  const {
+    quizResults,
+    musicProgress,
+    totalQuizPoints: quizPoints,
+    totalMusicPoints: musicPoints,
+    cipherSolvedCount: ciphersSolved,
+  } = useProgress()
 
-  const visitedCount = quizResultMap.size
-  const quizPoints = getTotalPointsEarned()
-  const musicPoints = getTotalMusicPoints()
+  const quizResultMap = new Map(quizResults.map((r) => [r.locationId, r]))
+  const musicMap = new Map(musicProgress.map((m) => [m.locationId, m]))
+
+  const visitedCount = quizResults.length
   const totalPoints = quizPoints + musicPoints
-  const ciphersSolved = getMusicCipherSolvedCount()
   const pct = Math.round((visitedCount / TOTAL_LOCATIONS) * 100)
 
   const firstUnvisitedId = LOCATIONS.find((l) => !quizResultMap.has(l.id))?.id ?? null
