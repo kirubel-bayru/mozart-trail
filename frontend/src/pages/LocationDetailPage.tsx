@@ -6,7 +6,6 @@ import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
 import { fetchOpeningHours, formatOsmHours } from '../lib/overpass'
 import { MusicListenCard } from '../components/MusicListenCard'
-import { C } from '../theme'
 
 function readingTime(text: string) {
   return Math.max(1, Math.ceil(text.split(' ').length / 200))

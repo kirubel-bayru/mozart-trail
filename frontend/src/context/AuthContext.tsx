@@ -1,56 +1,62 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { loadSession, saveSession, clearSession, type AuthUser } from '../lib/authApi'
-
-const GUEST_KEY = 'mozart-guest-mode'
+import {
+  loadSession,
+  saveSession,
+  clearSession,
+  fetchMe,
+  type AuthUser,
+  type AuthSession,
+} from '../lib/authApi'
 
 interface AuthContextValue {
   user: AuthUser | null
-  isGuest: boolean
   loading: boolean
-  setAuth: (user: AuthUser) => void
+  setAuth: (session: AuthSession) => Promise<void>
   logout: () => void
-  enterGuestMode: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
-  const [isGuest, setIsGuest] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const saved = loadSession()
-    if (saved) {
-      setUser(saved)
-    } else if (localStorage.getItem(GUEST_KEY) === 'true') {
-      setIsGuest(true)
+    let cancelled = false
+
+    async function init() {
+      const saved = loadSession()
+      if (saved?.token) {
+        try {
+          const freshUser = await fetchMe(saved.token)
+          if (cancelled) return
+          saveSession({ token: saved.token, user: freshUser })
+          setUser(freshUser)
+        } catch {
+          if (!cancelled) clearSession()
+        }
+      }
+
+      if (!cancelled) setLoading(false)
     }
-    setLoading(false)
+
+    init()
+    return () => { cancelled = true }
   }, [])
 
-  const setAuth = useCallback((newUser: AuthUser) => {
-    saveSession(newUser)
-    localStorage.removeItem(GUEST_KEY)
-    setUser(newUser)
-    setIsGuest(false)
+  const setAuth = useCallback(async (session: AuthSession) => {
+    saveSession(session)
+    setUser(session.user)
   }, [])
 
   const logout = useCallback(() => {
     clearSession()
-    localStorage.removeItem(GUEST_KEY)
     setUser(null)
-    setIsGuest(false)
-  }, [])
-
-  const enterGuestMode = useCallback(() => {
-    localStorage.setItem(GUEST_KEY, 'true')
-    setIsGuest(true)
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, isGuest, loading, setAuth, logout, enterGuestMode }}>
+    <AuthContext.Provider value={{ user, loading, setAuth, logout }}>
       {children}
     </AuthContext.Provider>
   )

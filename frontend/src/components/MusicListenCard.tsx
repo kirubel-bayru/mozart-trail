@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useProgress } from '../context/ProgressContext'
 import { fetchMusicForLocation } from '../lib/music'
 import {
+  buildCipherProgress,
+  buildListenProgress,
   CIPHER_BONUS_POINTS,
   LISTEN_BONUS_POINTS,
-  getMusicProgress,
-  solveMusicCipher,
-  updateListenProgress,
-} from '../lib/musicProgress'
+} from '../lib/musicHelpers'
 import type { MusicCipherChallenge, MusicTrack } from '../types/music'
 import { C, F } from '../theme'
 
@@ -34,6 +34,7 @@ function shuffledChoices(choices: [string, string, string, string], seed: string
 }
 
 export function MusicListenCard({ locationId }: MusicListenCardProps) {
+  const { getMusicProgress, saveMusicProgress } = useProgress()
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const tickRef = useRef<number | null>(null)
 
@@ -45,15 +46,16 @@ export function MusicListenCard({ locationId }: MusicListenCardProps) {
   const [playing, setPlaying] = useState(false)
   const [currentSec, setCurrentSec] = useState(0)
   const [durationSec, setDurationSec] = useState(0)
-  const [progress, setProgress] = useState(() => getMusicProgress(locationId))
+
+  const stored = getMusicProgress(locationId)
 
   const [selectedCipher, setSelectedCipher] = useState<string | null>(null)
   const [cipherFeedback, setCipherFeedback] = useState<'correct' | 'wrong' | null>(null)
 
   const listenTarget = track?.listenTargetSec ?? 20
-  const listenPct = Math.min(100, (progress?.listenedSec ?? 0) / listenTarget * 100)
-  const listenDone = progress?.listenComplete ?? false
-  const cipherDone = progress?.cipherSolved ?? false
+  const listenPct = Math.min(100, (stored?.listenedSec ?? 0) / listenTarget * 100)
+  const listenDone = stored?.listenComplete ?? false
+  const cipherDone = stored?.cipherSolved ?? false
 
   const choiceOptions = useMemo(
     () => (cipher ? shuffledChoices(cipher.choices, locationId) : []),
@@ -78,16 +80,20 @@ export function MusicListenCard({ locationId }: MusicListenCardProps) {
     return () => { cancelled = true }
   }, [locationId])
 
-  useEffect(() => {
-    setProgress(getMusicProgress(locationId))
-  }, [locationId, listenDone, cipherDone])
-
   const persistListen = useCallback(
     (sec: number) => {
-      const next = updateListenProgress(locationId, sec, listenTarget)
-      setProgress(next)
+      const existing = getMusicProgress(locationId)
+      const next = buildListenProgress(existing, locationId, sec, listenTarget)
+      if (
+        next.listenedSec === (existing?.listenedSec ?? 0)
+        && next.listenComplete === (existing?.listenComplete ?? false)
+        && next.listenPoints === (existing?.listenPoints ?? 0)
+      ) {
+        return
+      }
+      void saveMusicProgress(next).catch((err) => console.error('Failed to save listen progress:', err))
     },
-    [locationId, listenTarget],
+    [locationId, listenTarget, getMusicProgress, saveMusicProgress],
   )
 
   useEffect(() => {
@@ -128,8 +134,9 @@ export function MusicListenCard({ locationId }: MusicListenCardProps) {
     const ok = choice === cipher.answer
     setCipherFeedback(ok ? 'correct' : 'wrong')
     if (ok) {
-      const next = solveMusicCipher(locationId, true)
-      setProgress(next)
+      const existing = getMusicProgress(locationId)
+      const next = buildCipherProgress(existing, locationId, true)
+      void saveMusicProgress(next).catch((err) => console.error('Failed to save cipher progress:', err))
     }
   }
 

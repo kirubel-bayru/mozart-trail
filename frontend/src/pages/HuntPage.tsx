@@ -9,6 +9,7 @@ import { BottomNav } from '../components/BottomNav'
 import { LocationInfoCard } from '../components/LocationInfoCard'
 import { LOCATIONS, UNLOCK_RADIUS_M } from '../data/locations'
 import type { MozartLocation } from '../data/locations'
+import { useProgress } from '../context/ProgressContext'
 import { haversineDistance, formatDistance } from '../lib/geo'
 import { fetchWalkingRoute, fetchFullTrailRoute, formatDuration } from '../lib/ors'
 import type { RouteResult } from '../lib/ors'
@@ -28,7 +29,8 @@ function LocateIcon() {
 
 export function HuntPage() {
   const navigate = useNavigate()
-  const [unlockedIds, setUnlockedIds] = useState<Set<string>>(() => new Set())
+  const { unlockedLocationIds, unlockLocation } = useProgress()
+  const unlockedIds = useMemo(() => new Set(unlockedLocationIds), [unlockedLocationIds])
   const [userPos, setUserPos] = useState<[number, number] | null>(null)
   const [flyTarget, setFlyTarget] = useState<[number, number] | null>(null)
   const watchIdRef = useRef<number | null>(null)
@@ -102,7 +104,7 @@ export function HuntPage() {
       if (unlockedIds.has(loc.id)) return
       const dist = haversineDistance(userPos[0], userPos[1], loc.lat, loc.lng)
       if (dist <= UNLOCK_RADIUS_M) {
-        setUnlockedIds((prev) => new Set([...prev, loc.id]))
+        void unlockLocation(loc.id)
         notifications.show({
           title: '📍 Location Unlocked!',
           message: `You discovered ${loc.name}! +${loc.points} points`,

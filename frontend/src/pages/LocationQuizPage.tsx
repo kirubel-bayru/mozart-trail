@@ -5,7 +5,7 @@ import { getQuizForLocation } from '../data/quizzes'
 import { AppHeader } from '../components/AppHeader'
 import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
-import { saveQuizResult } from '../lib/quizProgress'
+import { useProgress } from '../context/ProgressContext'
 
 type Phase = 'intro' | 'question' | 'complete'
 
@@ -65,6 +65,8 @@ export function LocationQuizPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
+  const { saveQuizResult } = useProgress()
+
   const location = LOCATIONS.find((l) => l.id === id)
   const quiz = id ? getQuizForLocation(id) : undefined
 
@@ -99,7 +101,7 @@ export function LocationQuizPage() {
     }
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isLastQuestion) {
       const finalCorrect = correctCount
       const pointsEarned =
@@ -107,7 +109,7 @@ export function LocationQuizPage() {
           ? location.points
           : Math.max(10, Math.round((finalCorrect / total) * location.points))
 
-      saveQuizResult({
+      await saveQuizResult({
         locationId: location.id,
         correct: finalCorrect,
         total,

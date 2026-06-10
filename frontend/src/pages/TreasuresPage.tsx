@@ -4,8 +4,7 @@ import { AppHeader } from '../components/AppHeader'
 import { AppFooter } from '../components/AppFooter'
 import { BottomNav } from '../components/BottomNav'
 import { getTreasureEntries } from '../data/treasures'
-import { getAllQuizResults, getTotalPointsEarned } from '../lib/quizProgress'
-import { getAllMusicProgress, getMusicCipherSolvedCount, getTotalMusicPoints } from '../lib/musicProgress'
+import { useProgress } from '../context/ProgressContext'
 import { TOTAL_LOCATIONS } from '../data/locations'
 
 type Filter = 'all' | 'collected' | 'locked'
@@ -35,19 +34,22 @@ export function TreasuresPage() {
   const [filter, setFilter] = useState<Filter>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const resultsByLocation = new Map(
-    getAllQuizResults().map((r) => [r.locationId, r] as const),
-  )
-  const musicByLocation = new Map(
-    getAllMusicProgress().map((m) => [m.locationId, m] as const),
-  )
+  const {
+    treasures,
+    hasTreasure,
+    getQuizResult,
+    getMusicProgress,
+    totalQuizPoints: quizPoints,
+    totalMusicPoints: musicPoints,
+    cipherSolvedCount: ciphersSolved,
+  } = useProgress()
 
   const allEntries = getTreasureEntries().map(({ location, treasure }) => ({
     location,
     treasure,
-    result: resultsByLocation.get(location.id),
-    collected: resultsByLocation.has(location.id),
-    music: musicByLocation.get(location.id),
+    result: getQuizResult(location.id),
+    collected: hasTreasure(location.id),
+    music: getMusicProgress(location.id),
   }))
 
   const entries =
@@ -57,10 +59,7 @@ export function TreasuresPage() {
         ? allEntries.filter((e) => !e.collected)
         : allEntries
 
-  const collectedCount = resultsByLocation.size
-  const quizPoints = getTotalPointsEarned()
-  const musicPoints = getTotalMusicPoints()
-  const ciphersSolved = getMusicCipherSolvedCount()
+  const collectedCount = treasures.length
   const totalPoints = quizPoints + musicPoints
   const pct = Math.round((collectedCount / TOTAL_LOCATIONS) * 100)
 

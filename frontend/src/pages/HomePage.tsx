@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
+import { useAuth } from '../context/AuthContext'
 import { AppFooter } from '../components/AppFooter'
 import { TOTAL_LOCATIONS } from '../data/locations'
 import heroBg from '../assets/salzburg-bg.png'
@@ -38,6 +39,14 @@ function MapArrowIcon() {
 }
 
 export function HomePage() {
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
+
+  const handleExplore = () => {
+    if (user) navigate('/hunt')
+    else navigate('/profile')
+  }
+
   return (
     <div className="home-page">
       <AppHeader />
@@ -60,10 +69,15 @@ export function HomePage() {
             that shaped Wolfgang Amadeus Mozart.
           </p>
 
-          <Link to="/hunt" className="home-cta">
+          <button
+            type="button"
+            className="home-cta"
+            onClick={handleExplore}
+            disabled={loading}
+          >
             <MapArrowIcon />
-            Open the Map
-          </Link>
+            {loading ? 'Loading…' : user ? 'Open the Map' : 'Log in to Explore'}
+          </button>
 
           <div className="home-features">
             {FEATURES.map(({ icon, title, text }) => (
