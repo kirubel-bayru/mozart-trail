@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { LOCATIONS, TOTAL_LOCATIONS } from '../data/locations'
 
 const VISUALS: Record<string, { gradient: string; icon: string }> = {
@@ -52,15 +51,6 @@ function ChevronIcon({ direction }: { direction: 'left' | 'right' }) {
         d={direction === 'left' ? 'M15 6l-6 6 6 6' : 'M9 6l6 6-6 6'}
         stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
       />
-    </svg>
-  )
-}
-
-function ArrowIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2.5"
-        strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
@@ -183,9 +173,6 @@ export function LocationsShowcase() {
               <p className="loc-showcase-desc">
                 <Words text={location.description} base={0.35} step={0.012} />
               </p>
-              <Link to={`/location/${location.id}`} className="loc-showcase-explore">
-                Explore <ArrowIcon />
-              </Link>
             </div>
 
             <div className="loc-showcase-cards">
@@ -209,7 +196,6 @@ export function LocationsShowcase() {
                           style={img ? { backgroundImage: `url(${img})` } : { background: v.gradient }}
                         />
                         {!img && <span className="loc-card-icon" aria-hidden>{v.icon}</span>}
-                        <span className="loc-card-points">{loc.points} pts</span>
                       </div>
                       <p className="loc-card-name">{loc.name}</p>
                       <p className="loc-card-sub">{loc.subtitle}</p>
