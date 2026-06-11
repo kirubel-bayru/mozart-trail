@@ -5,6 +5,7 @@ import { C, F } from '../theme'
 
 interface AppHeaderProps {
   showBack?: boolean
+  overlay?: boolean
 }
 
 const HEADER_MAX_WIDTH = 1200
@@ -22,6 +23,15 @@ function PersonIcon() {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
       <circle cx="12" cy="8" r="4" stroke="white" strokeWidth="2" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
+      <path d="M20 20l-3.2-3.2" stroke="white" strokeWidth="2" strokeLinecap="round" />
     </svg>
   )
 }
@@ -67,7 +77,7 @@ function isHuntRoute(pathname: string) {
   return pathname === '/hunt' || pathname.startsWith('/location') || pathname.startsWith('/quiz')
 }
 
-export function AppHeader({ showBack = false }: AppHeaderProps) {
+export function AppHeader({ showBack = false, overlay = false }: AppHeaderProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuth()
@@ -107,8 +117,17 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
     navigate('/')
   }
 
+  const firstName = user?.displayName?.split(' ')[0]
+
   return (
-    <header style={{
+    <header style={overlay ? {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      background: 'linear-gradient(180deg, rgba(20,10,6,0.55) 0%, rgba(20,10,6,0) 100%)',
+      zIndex: 100,
+    } : {
       background: `linear-gradient(180deg, ${C.primary} 0%, ${C.primaryDark} 100%)`,
       flexShrink: 0,
       zIndex: 100,
@@ -193,7 +212,7 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
           </Link>
         </div>
 
-        {user && (
+        {(user || overlay) && (
           <nav className="top-nav-links" style={{ alignItems: 'center', gap: 4 }}>
             {NAV_LINKS.map(({ to, label }) => {
               const active = isActive(to)
@@ -223,6 +242,43 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
           </nav>
         )}
 
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+          {overlay && (
+            <button
+              type="button"
+              aria-label="Search"
+              className="header-search-btn"
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.14)',
+                border: '1px solid rgba(255,255,255,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0,
+                backdropFilter: 'blur(6px)',
+              }}
+            >
+              <SearchIcon />
+            </button>
+          )}
+          {overlay && firstName && (
+            <span
+              style={{
+                fontFamily: F.headline,
+                fontSize: 15,
+                fontWeight: 700,
+                color: 'white',
+                whiteSpace: 'nowrap',
+                letterSpacing: '0.01em',
+              }}
+            >
+              Hello, {firstName}!
+            </span>
+          )}
         <div className="header-profile-wrap" ref={menuRef}>
           <button
             type="button"
@@ -266,6 +322,7 @@ export function AppHeader({ showBack = false }: AppHeaderProps) {
               )}
             </div>
           )}
+        </div>
         </div>
       </div>
     </header>

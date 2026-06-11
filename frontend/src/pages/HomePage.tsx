@@ -1,27 +1,9 @@
+import type { MouseEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppHeader } from '../components/AppHeader'
 import { useAuth } from '../context/AuthContext'
-import { AppFooter } from '../components/AppFooter'
-import { TOTAL_LOCATIONS } from '../data/locations'
+import { LocationsShowcase } from '../components/LocationsShowcase'
 import heroBg from '../assets/salzburg-bg.png'
-
-const FEATURES = [
-  {
-    icon: '🗺',
-    title: 'Explore the city',
-    text: `${TOTAL_LOCATIONS} historic stops across Salzburg, from birthplace to final residence.`,
-  },
-  {
-    icon: '🏆',
-    title: 'Collect treasures',
-    text: 'Read each story, solve quizzes, and unlock digital artifacts along the way.',
-  },
-  {
-    icon: '🎵',
-    title: 'Track your journey',
-    text: 'See your progress, earn points, and follow the trail at your own pace.',
-  },
-] as const
 
 function MapArrowIcon() {
   return (
@@ -47,17 +29,20 @@ export function HomePage() {
     else navigate('/profile')
   }
 
+  const scrollToStops = (e: MouseEvent) => {
+    e.preventDefault()
+    document.getElementById('stops')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="home-page">
-      <AppHeader />
+      <AppHeader overlay />
 
       <main className="home-main">
         <div className="home-bg" style={{ backgroundImage: `url(${heroBg})` }} />
         <div className="home-overlay" />
 
         <div className="home-content">
-          <p className="home-eyebrow">Mozart's Trail · Salzburg</p>
-
           <h1 className="home-title">
             Walk where
             <br />
@@ -69,31 +54,29 @@ export function HomePage() {
             that shaped Wolfgang Amadeus Mozart.
           </p>
 
-          <button
-            type="button"
-            className="home-cta"
-            onClick={handleExplore}
-            disabled={loading}
-          >
-            <MapArrowIcon />
-            {loading ? 'Loading…' : user ? 'Open the Map' : 'Log in to Explore'}
-          </button>
-
-          <div className="home-features">
-            {FEATURES.map(({ icon, title, text }) => (
-              <div key={title} className="home-feature">
-                <span className="home-feature-icon" aria-hidden>{icon}</span>
-                <div>
-                  <p className="home-feature-title">{title}</p>
-                  <p className="home-feature-text">{text}</p>
-                </div>
-              </div>
-            ))}
+          <div className="home-cta-row">
+            <button
+              type="button"
+              className="home-cta"
+              onClick={handleExplore}
+              disabled={loading}
+            >
+              <MapArrowIcon />
+              {loading ? 'Loading…' : user ? 'Open the Map' : 'Log in to Explore'}
+            </button>
           </div>
         </div>
+
+        <a href="#stops" className="home-scroll-cue" onClick={scrollToStops} aria-label="Scroll to the stops">
+          <span>Scroll</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path d="M12 5v14M6 13l6 6 6-6" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </a>
       </main>
 
-      <AppFooter />
+      <LocationsShowcase />
     </div>
   )
 }
