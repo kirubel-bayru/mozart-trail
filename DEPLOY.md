@@ -80,7 +80,7 @@ SELECT tablename FROM pg_tables WHERE schemaname = 'public';
 If you prefer not to use `render.yaml`:
 
 - **Root Directory:** `backend`
-- **Build Command:** `npm install && npm run build`
+- **Build Command:** `npm install --include=dev && npm run build`
 - **Start Command:** `npm start`
 - **Health Check Path:** `/api/health`
 - **Environment:** `NODE_ENV=production`, plus `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN`
@@ -93,51 +93,46 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ---
 
-## Step 3 — Cloudflare Pages (frontend)
+## Step 3 — Cloudflare Workers (frontend)
 
-1. Sign up at [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Select your `mozart` repo.
+Cloudflare merged **Pages** into **Workers**. You create a **Worker** connected to Git; `wrangler.toml` at the repo root tells it to deploy only `frontend/dist`.
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Worker** → **Connect to Git**
+2. Select **`kirubel-bayru/mozart-trail`**
 3. Build settings:
 
    | Setting | Value |
    |---------|-------|
-   | **Production branch** | `main` |
-   | **Framework preset** | None |
-   | **Build command** | `cd frontend && npm install && npm run build` |
-   | **Build output directory** | `frontend/dist` |
+   | **Project name** | `mozart-trail` |
+   | **Production branch** | `deploy` (or `main`) |
+   | **Path** | `/` (repo root — where `wrangler.toml` lives) |
+   | **Build command** | `cd frontend && npm install --include=dev && npm run build` |
+   | **Deploy command** | `npx wrangler deploy` |
 
-4. **Environment variables** (Settings → Environment variables → Production):
+   The repo includes `wrangler.toml` pointing assets at `./frontend/dist` with SPA routing.
+
+4. **Environment variables** (Production):
 
    | Variable | Value |
    |----------|-------|
    | `NODE_ENV` | `production` |
    | `API_BASE_URL` | `https://mozart-api.onrender.com` (your Render URL, no trailing slash) |
-   | `ORS_API_KEY` | Your OpenRouteService key (optional, for walking directions) |
+   | `ORS_API_KEY` | Your OpenRouteService key (optional) |
 
 5. Deploy. Your site will be at something like:
    ```
-   https://mozart-trail.pages.dev
+   https://mozart-trail.YOUR-SUBDOMAIN.workers.dev
    ```
 
 6. **Update Render CORS** — in Render → `mozart-api` → Environment:
 
    ```
-   CORS_ORIGIN=https://mozart-trail.pages.dev
+   CORS_ORIGIN=https://mozart-trail.YOUR-SUBDOMAIN.workers.dev
    ```
 
-   For preview branches too, use comma-separated origins:
+   Save and redeploy Render.
 
-   ```
-   CORS_ORIGIN=https://mozart-trail.pages.dev,https://abc123.mozart-trail.pages.dev
-   ```
-
-   Save and redeploy the Render service.
-
-7. Hard-refresh the Cloudflare site and test:
-   - Home page loads
-   - **Log in to Explore** → register / log in
-   - After login → hunt map works
-   - Quiz progress persists (check Neon tables)
+7. Hard-refresh the site and test login → hunt map.
 
 ---
 
@@ -154,7 +149,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | `NODE_ENV` | Yes | `production` |
 | `MUSIC_API_URL` | No | External music API if configured |
 
-### Frontend (Cloudflare Pages)
+### Frontend (Cloudflare Workers)
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -162,7 +157,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | `ORS_API_KEY` | No | OpenRouteService key for directions |
 | `USE_MUSIC_API` | No | `true` if using backend music proxy |
 
-**Important:** Changing `API_BASE_URL` on Cloudflare requires a **new deployment** (rebuild), because Rspack embeds it at build time.
+**Important:** Changing `API_BASE_URL` requires a **new deployment** (rebuild).
 
 ---
 
@@ -177,7 +172,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 | Problem | Fix |
 |---------|-----|
-| Login fails / CORS error | `CORS_ORIGIN` on Render must exactly match the browser URL (including `https://`, no trailing slash) |
+| Cloudflare: `Asset too large` / rspack 60 MiB | Add `wrangler.toml` with `directory = "./frontend/dist"`. Build first, then `npx wrangler deploy` — do not point assets at `frontend/` |
+| Build fails: `Could not find a declaration file for module 'pg'` | Render sets `NODE_ENV=production`, which skips devDependencies. Use build command: `npm install --include=dev && npm run build` |
 | `database: disconnected` | Check `DATABASE_URL` on Render; use Neon **pooled** connection string |
 | API slow on first load | Render free tier cold start — normal |
 | Routes 404 on refresh | `_redirects` in `frontend/public/` should copy to `dist/` — redeploy frontend |

@@ -1,0 +1,7 @@
+name = "mozart-trail"
+compatibility_date = "2025-06-10"
+
+# Static React SPA — built by `cd frontend && npm run build`
+[assets]
+directory = "./frontend/dist"
+not_found_handling = "single-page-application"
