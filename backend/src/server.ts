@@ -21,11 +21,17 @@ const corsOrigins = parseCorsOrigins()
 
 app.use(cors({
   origin(origin, callback) {
-    if (!origin || corsOrigins.includes(origin)) {
+    // No Origin header (curl, same-origin) — allow
+    if (!origin) {
       callback(null, true)
       return
     }
-    callback(new Error(`CORS blocked for origin: ${origin}`))
+    if (corsOrigins.includes(origin)) {
+      callback(null, true)
+      return
+    }
+    console.warn(`CORS blocked origin: ${origin} (allowed: ${corsOrigins.join(', ')})`)
+    callback(null, false)
   },
 }))
 app.use(express.json())

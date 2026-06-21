@@ -1,7 +1,7 @@
 import { getSampleMusicResponse } from '../data/sampleMusic'
 import type { MusicTrackResponse } from '../types/music'
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:4000'
+import { API_BASE_URL } from './apiBaseUrl'
 const USE_MUSIC_API = process.env.USE_MUSIC_API === 'true'
 
 /** Use direct URLs for Wikimedia; proxy others when your API provides them. */
