@@ -71,6 +71,9 @@ export default {
     new rspack.HtmlRspackPlugin({
       template: "./index.html",
     }),
+    new rspack.CopyRspackPlugin({
+      patterns: [{ from: "public", to: ".", noErrorOnMissing: true }],
+    }),
     new rspack.DefinePlugin({
       "process.env.API_BASE_URL": JSON.stringify(
         process.env.API_BASE_URL || "http://localhost:4000",

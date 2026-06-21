@@ -10,8 +10,30 @@ dotenv.config()
 const app = express()
 const port = Number(process.env.PORT || 4000)
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }))
+function parseCorsOrigins(): string[] {
+  return (process.env.CORS_ORIGIN || 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+}
+
+const corsOrigins = parseCorsOrigins()
+
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || corsOrigins.includes(origin)) {
+      callback(null, true)
+      return
+    }
+    callback(new Error(`CORS blocked for origin: ${origin}`))
+  },
+}))
 app.use(express.json())
+
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET must be set in production')
+  process.exit(1)
+}
 
 // ── DB migration ──────────────────────────────────────────────────────────────
 async function migrate() {
@@ -175,7 +197,7 @@ app.get('/api/audio/proxy', async (req, res) => {
     const contentType = upstream.headers.get('content-type') || 'audio/mpeg'
     res.setHeader('Content-Type', contentType)
     res.setHeader('Cache-Control', 'public, max-age=86400')
-    res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN || '*')
+    res.setHeader('Access-Control-Allow-Origin', corsOrigins[0] || '*')
 
     const buffer = await upstream.arrayBuffer()
     return res.send(Buffer.from(buffer))
@@ -228,6 +250,6 @@ app.get('/api/db', async (_req, res) => {
 app.use('/api/auth', authRouter)
 app.use('/api/progress', progressRouter)
 
-app.listen(port, () => {
-  console.log(`API server running on http://localhost:${port}`)
+app.listen(port, '0.0.0.0', () => {
+  console.log(`API server running on port ${port}`)
 })
