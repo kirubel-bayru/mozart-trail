@@ -176,7 +176,7 @@ Cloudflare merged **Pages** into **Workers**. You create a **Worker** connected 
 | Build fails: `Could not find a declaration file for module 'pg'` | Render sets `NODE_ENV=production`, which skips devDependencies. Use build command: `npm install --include=dev && npm run build` |
 | `database: disconnected` | Check `DATABASE_URL` on Render; use Neon **pooled** connection string |
 | API slow on first load | Render free tier cold start — normal |
-| Routes 404 on refresh | `_redirects` in `frontend/public/` should copy to `dist/` — redeploy frontend |
+| Routes 404 on refresh | Cloudflare: use `not_found_handling = "single-page-application"` in `wrangler.toml` (do **not** add `public/_redirects` — it causes infinite loop errors) |
 | Walking directions missing | Set `ORS_API_KEY` in Cloudflare and redeploy |
 
 ---
